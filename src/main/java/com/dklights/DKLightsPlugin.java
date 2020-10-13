@@ -1,4 +1,4 @@
-package com.example;
+package com.dklights;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -7,33 +7,29 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Example"
+	name = "Dorgesh-Kaan Lights"
 )
-public class ExamplePlugin extends Plugin
+public class DKLightsPlugin extends Plugin
 {
 	@Inject
 	private Client client;
 
-	@Inject
-	private ExampleConfig config;
-
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.info("Example started!");
+		log.info("DKLights started!");
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.info("Example stopped!");
+		log.info("DKLights stopped!");
 	}
 
 	@Subscribe
@@ -41,13 +37,8 @@ public class ExamplePlugin extends Plugin
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.greeting(), null);
+			System.out.println("hi");
 		}
 	}
 
-	@Provides
-	ExampleConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(ExampleConfig.class);
-	}
 }
