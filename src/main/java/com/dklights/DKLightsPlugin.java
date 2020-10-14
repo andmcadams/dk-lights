@@ -45,7 +45,8 @@ public class DKLightsPlugin extends Plugin
 	private static DKLightsHelper helper;
 	private static final int DK_LIGHTS = 4038;
 
-	private static ArrayList<WorldPoint> lampPoints;
+	@Getter
+	private static ArrayList<LampPoint> lampPoints;
 
 	@Override
 	protected void startUp() throws Exception
@@ -90,9 +91,9 @@ public class DKLightsPlugin extends Plugin
 			lamps = tempLamps;
 			if (lampPoints.size() > 0)
 			{
-				WorldPoint closestLamp = helper.sortBrokenLamps(lampPoints, currentPoint).get(0);
+				LampPoint closestLamp = helper.sortBrokenLamps(lampPoints, currentPoint).get(0);
 				client.clearHintArrow();
-				client.setHintArrow(closestLamp);
+				client.setHintArrow(closestLamp.getWorldPoint());
 			}
 		}
 	}

@@ -2,7 +2,9 @@ package com.dklights;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 import javax.inject.Inject;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -30,12 +32,11 @@ public class DKLightsOverlayPanel extends OverlayPanel
 	public Dimension render(Graphics2D graphics)
 	{
 
-		int lamps = plugin.getLamps();
-		String lampBitString = Integer.toString(lamps, 2);
+		ArrayList<LampPoint> lampPoints = plugin.getLampPoints();
 
-		for(int i = lampBitString.length()-1; i >= 0; i--)
+		for(LampPoint l : lampPoints)
 		{
-			addTextToOverlayPanel(lampBitString.length()-1-i + ": " + lampBitString.charAt(i));
+			addTextToOverlayPanel(l.getDescription());
 		}
 
 
