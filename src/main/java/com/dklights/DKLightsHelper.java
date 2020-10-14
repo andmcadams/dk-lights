@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DKLightsHelper
 {
 
-	// Anything with y >= 5312 is in the north chunk of Dorgesh-Kaan
+	// Anything with y >= 5312 is in the north map square of Dorgesh-Kaan
 	public static final int WORLDMAP_LINE = 5312;
 
 	// HashMap containing WorldPoints for each lamp on Plane Pn for N(orth) and S(outh)
@@ -27,6 +27,9 @@ public class DKLightsHelper
 
 	public static final HashMap<Integer, HashMap<Integer, WorldPoint>[]> maps = new HashMap<>();
 
+	// Initialize the HashMaps for each region with the points found in them.
+	// The key refers to the bit in the Dorgesh-Kaan lamps varbit that the lamp
+	// is indicated by (little-endian bits). The value is the WorldPoint of the lamp.
 	public void init()
 	{
 		P0_N.put(5, new WorldPoint(2691, 5328, 0));
@@ -106,6 +109,10 @@ public class DKLightsHelper
 		maps.put(DKLightsEnum.P2_S.value, new HashMap[]{P2_S, P2_N});
 	}
 
+	// Determine which region of Dorgesh-Kaan the player is currently in.
+	// The city is split across a northern and southern map square.
+	// The interpretation of the Dorgesh-Kaan lamps varbit depends on whether the player is in the
+	// north or south square and which plane the player is located in.
 	public DKLightsEnum determineLocation(WorldPoint w)
 	{
 
@@ -139,6 +146,9 @@ public class DKLightsHelper
 		return DKLightsEnum.BAD_AREA;
 	}
 
+	// Return a list of WorldPoint objects corresponding to the tiles that broken lamps are on
+	// based on the players current region.
+	// Typically, the parameter lamps should be the value of the Dorgesh-Kaan lamps varbit (4038).
 	public ArrayList<WorldPoint> findBrokenLamps(int lamps, DKLightsEnum currentArea)
 	{
 		BitSet bits = BitSet.valueOf(new long[]{lamps});
@@ -150,8 +160,12 @@ public class DKLightsHelper
 				break;
 			// For this set bit, grab the lamp loc based on the current area
 			WorldPoint w = maps.get(currentArea.value)[0].get(i);
+
+			// If there is no lamp indicated by the bit i in the first map square,
+			// the bit actually refers to a lamp in the other map square.
 			if (w == null)
 				w = maps.get(currentArea.value)[1].get(i);
+
 			if (w != null)
 				lampPoints.add(w);
 			else
@@ -162,6 +176,8 @@ public class DKLightsHelper
 
 
 
+	// Return a sorted ArrayList of n world points such that the WorldPoint closest to the player
+	// is at index 0 and the farthest point is at index n-1.
 	public ArrayList<WorldPoint> sortBrokenLamps(ArrayList<WorldPoint> lampPoints, WorldPoint currentPoint)
 	{
 
