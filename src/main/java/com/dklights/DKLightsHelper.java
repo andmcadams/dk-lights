@@ -77,6 +77,7 @@ public class DKLightsHelper
 		P1_S.put(4, new WorldPoint(2695, 5294, 1));
 		P1_S.put(10, new WorldPoint(2736, 5272, 1));
 		P1_S.put(11, new WorldPoint(2731, 5272, 1));
+		P1_S.put(12, new WorldPoint(2736, 5278, 1));
 		P1_S.put(13, new WorldPoint(2709, 5270, 1));
 		P1_S.put(14, new WorldPoint(2707, 5278, 1));
 
