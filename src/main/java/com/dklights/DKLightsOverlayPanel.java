@@ -3,6 +3,7 @@ package com.dklights;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import javax.inject.Inject;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -36,9 +37,21 @@ public class DKLightsOverlayPanel extends OverlayPanel
 
 		panelComponent.getChildren().clear();
 
+		HashMap<String, Integer> descriptionCount = new HashMap<>();
 		for(LampPoint l : lampPoints)
 		{
-			addTextToOverlayPanel(l.getDescription());
+			if (!descriptionCount.containsKey(l.getDescription()))
+				descriptionCount.put(l.getDescription(), 1);
+			else
+				descriptionCount.put(l.getDescription(), descriptionCount.get(l.getDescription())+1);
+		}
+
+		for (String s : descriptionCount.keySet())
+		{
+			String num = " (x" + descriptionCount.get(s) + ")";
+			if (descriptionCount.get(s) == 1)
+				num = "";
+			addTextToOverlayPanel(s + num);
 		}
 
 
