@@ -38,6 +38,8 @@ public class DKLightsPlugin extends Plugin
 	private WorldPoint currentPoint;
 
 	private static DKLightsHelper helper;
+
+	// This varbit tells you which lamps are broken based on plane and map square
 	private static final int DK_LIGHTS = 4038;
 
 	@Getter
@@ -46,7 +48,6 @@ public class DKLightsPlugin extends Plugin
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.info("DKLights started!");
 		overlayManager.add(overlayPanel);
 		helper = new DKLightsHelper();
 		helper.init();
@@ -55,7 +56,6 @@ public class DKLightsPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.info("DKLights stopped!");
 		overlayManager.remove(overlayPanel);
 	}
 
