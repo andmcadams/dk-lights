@@ -46,9 +46,6 @@ public class DKLightsPlugin extends Plugin
 	private static final int DK_LIGHTS = 4038;
 
 	@Getter
-	private static ArrayList<LampPoint> lampPoints;
-
-	@Getter
 	private static HashSet<LampPoint> brokenLamps = new HashSet<>();
 
 	@Override
@@ -98,7 +95,7 @@ public class DKLightsPlugin extends Plugin
 			{
 				return;
 			}
-			lampPoints = helper.getAreaLamps(tempLamps, currentArea);
+			ArrayList<LampPoint> lampPoints = helper.getAreaLamps(tempLamps, currentArea);
 			for (LampPoint l : lampPoints)
 			{
 				if (l.isBroken())
@@ -118,7 +115,7 @@ public class DKLightsPlugin extends Plugin
 		{
 			currentPoint = tempPoint;
 			lamps = tempLamps;
-			if (lampPoints != null && lampPoints.size() > 0)
+			if (brokenLamps != null && brokenLamps.size() > 0)
 			{
 				ArrayList<LampPoint> sortedLamps = helper.sortBrokenLamps(brokenLamps, currentPoint);
 				if (!sortedLamps.isEmpty())
