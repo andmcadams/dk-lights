@@ -1,12 +1,9 @@
 package com.dklights;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
-import net.runelite.api.Client;
-import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import lombok.extern.slf4j.Slf4j;
 

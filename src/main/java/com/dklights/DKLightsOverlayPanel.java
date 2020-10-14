@@ -5,7 +5,6 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.inject.Inject;
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.components.LineComponent;

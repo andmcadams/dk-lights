@@ -1,18 +1,13 @@
 package com.dklights;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.api.Player;
-import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
