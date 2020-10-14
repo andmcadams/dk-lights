@@ -98,6 +98,20 @@ public class DKLightsHelper
 		P2_S.put(8, new LampPoint(8, new WorldPoint(2695, 5301, 2), "Upstairs of the western house two houses north of the train station"));
 		P2_S.put(9, new LampPoint(9, new WorldPoint(2740, 5264, 2), "Upstairs of the SE most house"));
 
+		// There is probably a more concise way of doing this
+		for (Integer key : P0_N.keySet())
+			P0_N.get(key).setArea(DKLightsEnum.P0_N);
+		for (Integer key : P0_S.keySet())
+			P0_S.get(key).setArea(DKLightsEnum.P0_S);
+		for (Integer key : P1_N.keySet())
+			P1_N.get(key).setArea(DKLightsEnum.P1_N);
+		for (Integer key : P1_S.keySet())
+			P1_S.get(key).setArea(DKLightsEnum.P1_S);
+		for (Integer key : P2_N.keySet())
+			P2_N.get(key).setArea(DKLightsEnum.P2_N);
+		for (Integer key : P2_S.keySet())
+			P2_S.get(key).setArea(DKLightsEnum.P2_S);
+
 		maps.put(DKLightsEnum.P0_N.value, new HashMap[]{P0_N, P0_S});
 		maps.put(DKLightsEnum.P0_S.value, new HashMap[]{P0_S, P0_N});
 		maps.put(DKLightsEnum.P1_N.value, new HashMap[]{P1_N, P1_S});
