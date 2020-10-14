@@ -52,12 +52,12 @@ public class DKLightsHelper
 		P0_S.put(2, new LampPoint(2, new WorldPoint(2744, 5299, 0), "Group of rooms just SE of the market"));
 		P0_S.put(3, new LampPoint(3, new WorldPoint(2690, 5302, 0), "Group of rooms just SW of the market"));
 		P0_S.put(4, new LampPoint(4, new WorldPoint(2698, 5302, 0), "Group of rooms just SW of the market"));
-		P0_S.put(10, new LampPoint(10, new WorldPoint(2699, 5256, 0), "SE most group of rooms"));
-		P0_S.put(11, new LampPoint(11, new WorldPoint(2695, 5260, 0), "SE most group of rooms"));
-		P0_S.put(12, new LampPoint(12, new WorldPoint(2698, 5269, 0), "SE most group of rooms"));
+		P0_S.put(10, new LampPoint(10, new WorldPoint(2699, 5256, 0), "SW most group of rooms"));
+		P0_S.put(11, new LampPoint(11, new WorldPoint(2695, 5260, 0), "SW most group of rooms"));
+		P0_S.put(12, new LampPoint(12, new WorldPoint(2698, 5269, 0), "SW most group of rooms"));
 		P0_S.put(13, new LampPoint(13, new WorldPoint(2735, 5278, 0), "Eastern house in south part of the city"));
-		P0_S.put(14, new LampPoint(14, new WorldPoint(2739, 5253, 0), "SW most group of rooms"));
-		P0_S.put(15, new LampPoint(15, new WorldPoint(2749, 5261, 0), "SW most group of rooms"));
+		P0_S.put(14, new LampPoint(14, new WorldPoint(2739, 5253, 0), "SE most group of rooms"));
+		P0_S.put(15, new LampPoint(15, new WorldPoint(2749, 5261, 0), "SE most group of rooms"));
 		P0_S.put(16, new LampPoint(16, new WorldPoint(2707, 5274, 0), "House just west of the wire machine"));
 
 		P1_N.put(5, new LampPoint(5, new WorldPoint(2693, 5331, 1), "Western house with a garden"));
