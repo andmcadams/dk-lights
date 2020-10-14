@@ -102,7 +102,7 @@ public class DKLightsPlugin extends Plugin
 				if (l.isBroken())
 					brokenLamps.add(l);
 				else
-					log.info("Removed: " + brokenLamps.remove(l));
+					brokenLamps.remove(l);
 			}
 		}
 
