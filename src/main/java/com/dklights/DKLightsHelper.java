@@ -2,8 +2,10 @@ package com.dklights;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import net.runelite.api.coords.WorldPoint;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,14 +17,14 @@ public class DKLightsHelper
 	public static final int WORLDMAP_LINE = 5312;
 
 	// HashMap containing WorldPoints for each lamp on Plane Pn for N(orth) and S(outh)
-	public static final HashMap<Integer, LampPoint> P0_N = new HashMap<>();
-	public static final HashMap<Integer, LampPoint> P0_S = new HashMap<>();
-	public static final HashMap<Integer, LampPoint> P1_N = new HashMap<>();
-	public static final HashMap<Integer, LampPoint> P1_S = new HashMap<>();
-	public static final HashMap<Integer, LampPoint> P2_N = new HashMap<>();
-	public static final HashMap<Integer, LampPoint> P2_S = new HashMap<>();
+	public final HashMap<Integer, LampPoint> P0_N = new HashMap<>();
+	public final HashMap<Integer, LampPoint> P0_S = new HashMap<>();
+	public final HashMap<Integer, LampPoint> P1_N = new HashMap<>();
+	public final HashMap<Integer, LampPoint> P1_S = new HashMap<>();
+	public final HashMap<Integer, LampPoint> P2_N = new HashMap<>();
+	public final HashMap<Integer, LampPoint> P2_S = new HashMap<>();
 
-	public static final HashMap<Integer, HashMap<Integer, LampPoint>[]> maps = new HashMap<>();
+	public final HashMap<Integer, HashMap<Integer, LampPoint>[]> maps = new HashMap<>();
 
 	// Initialize the HashMaps for each region with the points found in them.
 	// The key refers to the bit in the Dorgesh-Kaan lamps varbit that the lamp
@@ -172,34 +174,37 @@ public class DKLightsHelper
 	// Return a list of LampPoint objects corresponding to the broken lamps
 	// based on the player's current region.
 	// Typically, the parameter lamps should be the value of the Dorgesh-Kaan lamps varbit (4038).
-	public ArrayList<LampPoint> findBrokenLamps(int lamps, DKLightsEnum currentArea)
+	public ArrayList<LampPoint> getAreaLamps(int lamps, DKLightsEnum currentArea)
 	{
 		BitSet bits = BitSet.valueOf(new long[]{lamps});
 		ArrayList<LampPoint> lampPoints = new ArrayList<>();
 
-		for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1))
+		HashMap<Integer, LampPoint> currentMap = maps.get(currentArea.value)[0];
+		HashMap<Integer, LampPoint> oppositeMap = maps.get(currentArea.value)[1];
+
+		// Only check up to the highest key in the current area.
+		// Lower ones that are missing are correctly shown in the varbit, higher ones are not.
+		int maxKey = Collections.max(currentMap.keySet());
+		for (int i = 0; i <= maxKey; i++)
 		{
-			if (i == Integer.MAX_VALUE)
-			{
-				break;
-			}
 			// For this set bit, grab the lamp loc based on the current area
-			LampPoint l = maps.get(currentArea.value)[0].get(i);
+			LampPoint l = currentMap.get(i);
 
 			// If there is no lamp indicated by the bit i in the first map square,
 			// the bit actually refers to a lamp in the other map square.
 			if (l == null)
 			{
-				l = maps.get(currentArea.value)[1].get(i);
+				l = oppositeMap.get(i);
 			}
 
 			if (l != null)
 			{
+				boolean isBroken = false;
+				if (i < bits.length())
+					isBroken = bits.get(i);
+
+				l.setBroken(isBroken);
 				lampPoints.add(l);
-			}
-			else
-			{
-				log.warn("Bit " + i + " has a null value for both arrays!");
 			}
 		}
 		return lampPoints;
@@ -207,7 +212,7 @@ public class DKLightsHelper
 
 	// Return a sorted ArrayList of n world points such that the WorldPoint closest to the player
 	// is at index 0 and the farthest point is at index n-1.
-	public ArrayList<LampPoint> sortBrokenLamps(ArrayList<LampPoint> lampPoints, WorldPoint currentPoint)
+	public ArrayList<LampPoint> sortBrokenLamps(HashSet<LampPoint> lampPoints, WorldPoint currentPoint)
 	{
 
 		ArrayList<LampPoint> sortedPoints = new ArrayList<>(lampPoints);

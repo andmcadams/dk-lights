@@ -2,6 +2,7 @@ package com.dklights;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +49,7 @@ public class DKLightsPlugin extends Plugin
 	private static ArrayList<LampPoint> lampPoints;
 
 	@Getter
-	private static HashMap<Integer, ArrayList<LampPoint>> areaLampPoints = new HashMap<>();
+	private static HashSet<LampPoint> brokenLamps = new HashSet<>();
 
 	@Override
 	protected void startUp() throws Exception
@@ -62,9 +63,9 @@ public class DKLightsPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		overlayManager.remove(overlayPanel);
+		client.clearHintArrow();
 	}
 
-	private static int c = 0;
 	private static boolean tickFlag = true;
 	@Subscribe
 	public void onGameTick(GameTick event)
@@ -72,7 +73,6 @@ public class DKLightsPlugin extends Plugin
 		Player player = client.getLocalPlayer();
 		if (player == null)
 		{
-			c += 1;
 			return;
 		}
 		WorldPoint tempPoint = player.getWorldLocation();
@@ -96,8 +96,14 @@ public class DKLightsPlugin extends Plugin
 			{
 				return;
 			}
-			lampPoints = helper.findBrokenLamps(tempLamps, currentArea);
-			areaLampPoints.put(currentArea.value, lampPoints);
+			lampPoints = helper.getAreaLamps(tempLamps, currentArea);
+			for (LampPoint l : lampPoints)
+			{
+				if (l.isBroken())
+					brokenLamps.add(l);
+				else
+					log.info("Removed: " + brokenLamps.remove(l));
+			}
 		}
 
 		// Point to the closest broken lamp after moving or fixing a lamp
@@ -108,7 +114,7 @@ public class DKLightsPlugin extends Plugin
 			lamps = tempLamps;
 			if (lampPoints != null && lampPoints.size() > 0)
 			{
-				LampPoint closestLamp = helper.sortBrokenLamps(lampPoints, currentPoint).get(0);
+				LampPoint closestLamp = helper.sortBrokenLamps(brokenLamps, currentPoint).get(0);
 				client.clearHintArrow();
 				client.setHintArrow(closestLamp.getWorldPoint());
 			}

@@ -33,25 +33,16 @@ public class DKLightsOverlayPanel extends OverlayPanel
 	public Dimension render(Graphics2D graphics)
 	{
 
-		HashMap<Integer, ArrayList<LampPoint>> areaLampPoints = plugin.getAreaLampPoints();
-
-		ArrayList<LampPoint> lampPoints = plugin.getLampPoints();
+		HashSet<LampPoint> areaLampPoints = plugin.getBrokenLamps();
 
 		panelComponent.getChildren().clear();
-
-		HashSet<LampPoint> uniquePoints = new HashSet<>();
-
-		for (ArrayList<LampPoint> l : areaLampPoints.values())
-		{
-			uniquePoints.addAll(l);
-		}
 
 		boolean addedText = false;
 		String[] areaNames = {"P0N", "P0S", "P1N", "P1S", "P2N", "P2S"};
 		for (int i = 0; i < DKLightsEnum.BAD_AREA.value; i++)
 		{
 			HashMap<String, Integer> descriptionCount = new HashMap<>();
-			for (LampPoint l : uniquePoints)
+			for (LampPoint l : areaLampPoints)
 			{
 				if (l.getArea().value != i)
 					continue;
