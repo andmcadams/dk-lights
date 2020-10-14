@@ -95,6 +95,8 @@ public class DKLightsPlugin extends Plugin
 				client.clearHintArrow();
 				client.setHintArrow(closestLamp.getWorldPoint());
 			}
+			else
+				client.clearHintArrow();
 		}
 	}
 
