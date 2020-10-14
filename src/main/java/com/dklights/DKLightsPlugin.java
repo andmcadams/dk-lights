@@ -1,11 +1,13 @@
 package com.dklights;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.Player;
 import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
@@ -37,8 +39,13 @@ public class DKLightsPlugin extends Plugin
 	@Getter
 	private DKLightsEnum currentArea;
 
+	@Getter
+	private WorldPoint currentPoint;
+
 	private static DKLightsHelper helper;
 	private static final int DK_LIGHTS = 4038;
+
+	private static ArrayList<WorldPoint> lampPoints;
 
 	@Override
 	protected void startUp() throws Exception
@@ -59,7 +66,11 @@ public class DKLightsPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		DKLightsEnum tempArea = helper.determineLocation(client);
+		Player player = client.getLocalPlayer();
+		if (player == null)
+			return;
+		WorldPoint tempPoint = player.getWorldLocation();
+		DKLightsEnum tempArea = helper.determineLocation(currentPoint);
 		int tempLamps = client.getVarbitValue(DK_LIGHTS);
 
 		// If we have changed areas or the lamps varb, we need to reload the overlay.
@@ -68,14 +79,20 @@ public class DKLightsPlugin extends Plugin
 			currentArea = tempArea;
 			if (tempArea == DKLightsEnum.BAD_AREA)
 				return;
+			lampPoints = helper.findBrokenLamps(tempLamps, currentArea);
+		}
+
+		// Point to the closest broken lamp after moving or fixing a lamp
+		// Note that tempArea != currentArea => tempPoint != currentPoint
+		if (tempPoint != currentPoint || tempLamps != lamps)
+		{
+			currentPoint = tempPoint;
 			lamps = tempLamps;
-			ArrayList<WorldPoint> wps = helper.findBrokenLamps(lamps, currentArea);
-			log.info("Size: " + wps.size());
-			client.clearHintArrow();
-			for (WorldPoint wp : wps)
+			if (lampPoints.size() > 0)
 			{
-				log.info("Creating hint arrow for wp " + wp);
-				client.setHintArrow(wp);
+				WorldPoint closestLamp = helper.sortBrokenLamps(lampPoints, currentPoint).get(0);
+				client.clearHintArrow();
+				client.setHintArrow(closestLamp);
 			}
 		}
 	}

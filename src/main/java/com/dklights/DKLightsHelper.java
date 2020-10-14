@@ -3,6 +3,7 @@ package com.dklights;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.HashMap;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
@@ -105,40 +106,34 @@ public class DKLightsHelper
 		maps.put(DKLightsEnum.P2_S.value, new HashMap[]{P2_S, P2_N});
 	}
 
-	public DKLightsEnum determineLocation(Client client)
+	public DKLightsEnum determineLocation(WorldPoint w)
 	{
 
-		Player player = client.getLocalPlayer();
-
 		// Note that this is very explicit for readability.
-		if (player != null)
+		if (w != null)
 		{
-			WorldPoint w = player.getWorldLocation();
-			if (w != null)
+			int plane = w.getPlane();
+			int y = w.getY();
+			if (plane == 0)
 			{
-				int plane = w.getPlane();
-				int y = w.getY();
-				if (plane == 0)
-				{
-					if (y >= WORLDMAP_LINE)
-						return DKLightsEnum.P0_N;
-					else
-						return DKLightsEnum.P0_S;
-				}
-				else if (plane == 1)
-				{
-					if (y >= WORLDMAP_LINE)
-						return DKLightsEnum.P1_N;
-					else
-						return DKLightsEnum.P1_S;
-				}
-				else if (plane == 2)
-				{
-					if (y >= WORLDMAP_LINE)
-						return DKLightsEnum.P2_N;
-					else
-						return DKLightsEnum.P2_S;
-				}
+				if (y >= WORLDMAP_LINE)
+					return DKLightsEnum.P0_N;
+				else
+					return DKLightsEnum.P0_S;
+			}
+			else if (plane == 1)
+			{
+				if (y >= WORLDMAP_LINE)
+					return DKLightsEnum.P1_N;
+				else
+					return DKLightsEnum.P1_S;
+			}
+			else if (plane == 2)
+			{
+				if (y >= WORLDMAP_LINE)
+					return DKLightsEnum.P2_N;
+				else
+					return DKLightsEnum.P2_S;
 			}
 		}
 		return DKLightsEnum.BAD_AREA;
@@ -163,5 +158,25 @@ public class DKLightsHelper
 				log.info("Bit " + i + " has a null value for both arrays!");
 		}
 		return lampPoints;
+	}
+
+
+
+	public ArrayList<WorldPoint> sortBrokenLamps(ArrayList<WorldPoint> lampPoints, WorldPoint currentPoint)
+	{
+
+		ArrayList<WorldPoint> sortedPoints = new ArrayList<>(lampPoints);
+
+		Comparator<WorldPoint> comparator = new Comparator<WorldPoint>()
+		{
+			public int compare(WorldPoint a, WorldPoint b)
+			{
+				return currentPoint.distanceTo(a) - currentPoint.distanceTo(b);
+			}
+		};
+
+		sortedPoints.sort(comparator);
+
+		return sortedPoints;
 	}
 }
