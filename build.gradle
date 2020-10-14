@@ -25,7 +25,7 @@ dependencies {
 	}
 }
 
-group = 'com.dk-lights-plugin'
+group = 'com.dklights'
 version = '1.0'
 sourceCompatibility = '1.8'
 
