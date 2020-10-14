@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import javax.inject.Inject;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -38,10 +39,10 @@ public class DKLightsOverlayPanel extends OverlayPanel
 		panelComponent.getChildren().clear();
 
 		boolean addedText = false;
-		String[] areaNames = {"P0N", "P0S", "P1N", "P1S", "P2N", "P2S"};
+		String[] areaNames = {"North Ground Floor", "South Ground Floor", "North Second Floor", "South Second Floor", "North Third Floor", "South Third Floor"};
 		for (int i = 0; i < DKLightsEnum.BAD_AREA.value; i++)
 		{
-			HashMap<String, Integer> descriptionCount = new HashMap<>();
+			LinkedHashMap<String, Integer> descriptionCount = new LinkedHashMap<>();
 			for (LampPoint l : areaLampPoints)
 			{
 				if (l.getArea().value != i)
@@ -66,7 +67,7 @@ public class DKLightsOverlayPanel extends OverlayPanel
 				{
 					num = "";
 				}
-				addTextToOverlayPanel(s + num);
+				addTextToOverlayPanel("* " + s + num);
 				addedText = true;
 			}
 		}
