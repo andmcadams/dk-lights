@@ -34,6 +34,8 @@ public class DKLightsOverlayPanel extends OverlayPanel
 
 		ArrayList<LampPoint> lampPoints = plugin.getLampPoints();
 
+		panelComponent.getChildren().clear();
+
 		for(LampPoint l : lampPoints)
 		{
 			addTextToOverlayPanel(l.getDescription());
