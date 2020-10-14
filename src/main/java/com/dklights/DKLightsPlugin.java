@@ -67,6 +67,7 @@ public class DKLightsPlugin extends Plugin
 	}
 
 	private static boolean tickFlag = true;
+
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
@@ -88,6 +89,7 @@ public class DKLightsPlugin extends Plugin
 			return;
 		}
 		tickFlag = true;
+
 		// If we have changed areas or the lamps varb, we need to reload the overlay.
 		if (tempArea != currentArea || tempLamps != lamps)
 		{
@@ -100,9 +102,13 @@ public class DKLightsPlugin extends Plugin
 			for (LampPoint l : lampPoints)
 			{
 				if (l.isBroken())
+				{
 					brokenLamps.add(l);
+				}
 				else
+				{
 					brokenLamps.remove(l);
+				}
 			}
 		}
 
@@ -114,9 +120,13 @@ public class DKLightsPlugin extends Plugin
 			lamps = tempLamps;
 			if (lampPoints != null && lampPoints.size() > 0)
 			{
-				LampPoint closestLamp = helper.sortBrokenLamps(brokenLamps, currentPoint).get(0);
-				client.clearHintArrow();
-				client.setHintArrow(closestLamp.getWorldPoint());
+				ArrayList<LampPoint> sortedLamps = helper.sortBrokenLamps(brokenLamps, currentPoint);
+				if (!sortedLamps.isEmpty())
+				{
+					LampPoint closestLamp = sortedLamps.get(0);
+					client.clearHintArrow();
+					client.setHintArrow(closestLamp.getWorldPoint());
+				}
 			}
 			else
 			{

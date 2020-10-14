@@ -35,15 +35,21 @@ public class LampPoint
 	public boolean equals(Object o)
 	{
 		if (this == o)
+		{
 			return true;
+		}
 
 		if (!(o instanceof LampPoint))
+		{
 			return false;
+		}
 
 		LampPoint l = (LampPoint) o;
 
 		if (this.worldPoint.equals(l.worldPoint))
+		{
 			return true;
+		}
 
 		return false;
 	}

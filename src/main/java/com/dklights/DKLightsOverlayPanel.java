@@ -40,13 +40,19 @@ public class DKLightsOverlayPanel extends OverlayPanel
 
 		boolean addedText = false;
 		String[] areaNames = {"North Ground Floor", "South Ground Floor", "North Second Floor", "South Second Floor", "North Third Floor", "South Third Floor"};
+		if (areaLampPoints != null && areaLampPoints.size() != 10)
+		{
+			addTextToOverlayPanel("Unknown lights: " + (10 - areaLampPoints.size()));
+		}
 		for (int i = 0; i < DKLightsEnum.BAD_AREA.value; i++)
 		{
 			LinkedHashMap<String, Integer> descriptionCount = new LinkedHashMap<>();
 			for (LampPoint l : areaLampPoints)
 			{
 				if (l.getArea().value != i)
+				{
 					continue;
+				}
 
 				if (!descriptionCount.containsKey(l.getDescription()))
 				{
@@ -59,7 +65,9 @@ public class DKLightsOverlayPanel extends OverlayPanel
 			}
 
 			if (descriptionCount.size() != 0)
+			{
 				addTextToOverlayPanel(areaNames[i]);
+			}
 			for (String s : descriptionCount.keySet())
 			{
 				String num = " (x" + descriptionCount.get(s) + ")";

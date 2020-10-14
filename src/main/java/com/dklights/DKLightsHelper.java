@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import lombok.NonNull;
 import net.runelite.api.coords.WorldPoint;
 import lombok.extern.slf4j.Slf4j;
 
@@ -102,17 +103,29 @@ public class DKLightsHelper
 
 		// There is probably a more concise way of doing this
 		for (Integer key : P0_N.keySet())
+		{
 			P0_N.get(key).setArea(DKLightsEnum.P0_N);
+		}
 		for (Integer key : P0_S.keySet())
+		{
 			P0_S.get(key).setArea(DKLightsEnum.P0_S);
+		}
 		for (Integer key : P1_N.keySet())
+		{
 			P1_N.get(key).setArea(DKLightsEnum.P1_N);
+		}
 		for (Integer key : P1_S.keySet())
+		{
 			P1_S.get(key).setArea(DKLightsEnum.P1_S);
+		}
 		for (Integer key : P2_N.keySet())
+		{
 			P2_N.get(key).setArea(DKLightsEnum.P2_N);
+		}
 		for (Integer key : P2_S.keySet())
+		{
 			P2_S.get(key).setArea(DKLightsEnum.P2_S);
+		}
 
 		maps.put(DKLightsEnum.P0_N.value, new HashMap[]{P0_N, P0_S});
 		maps.put(DKLightsEnum.P0_S.value, new HashMap[]{P0_S, P0_N});
@@ -126,46 +139,42 @@ public class DKLightsHelper
 	// The city is split across a northern and southern map square.
 	// The interpretation of the Dorgesh-Kaan lamps varbit depends on whether the player is in the
 	// north or south square and which plane the player is located in.
-	public DKLightsEnum determineLocation(WorldPoint w)
+	public DKLightsEnum determineLocation(@NonNull WorldPoint w)
 	{
-
 		// Note that this is very explicit for readability.
-		if (w != null)
+		int plane = w.getPlane();
+		int y = w.getY();
+		if (plane == 0)
 		{
-			int plane = w.getPlane();
-			int y = w.getY();
-			if (plane == 0)
+			if (y >= WORLDMAP_LINE)
 			{
-				if (y >= WORLDMAP_LINE)
-				{
-					return DKLightsEnum.P0_N;
-				}
-				else
-				{
-					return DKLightsEnum.P0_S;
-				}
+				return DKLightsEnum.P0_N;
 			}
-			else if (plane == 1)
+			else
 			{
-				if (y >= WORLDMAP_LINE)
-				{
-					return DKLightsEnum.P1_N;
-				}
-				else
-				{
-					return DKLightsEnum.P1_S;
-				}
+				return DKLightsEnum.P0_S;
 			}
-			else if (plane == 2)
+		}
+		else if (plane == 1)
+		{
+			if (y >= WORLDMAP_LINE)
 			{
-				if (y >= WORLDMAP_LINE)
-				{
-					return DKLightsEnum.P2_N;
-				}
-				else
-				{
-					return DKLightsEnum.P2_S;
-				}
+				return DKLightsEnum.P1_N;
+			}
+			else
+			{
+				return DKLightsEnum.P1_S;
+			}
+		}
+		else if (plane == 2)
+		{
+			if (y >= WORLDMAP_LINE)
+			{
+				return DKLightsEnum.P2_N;
+			}
+			else
+			{
+				return DKLightsEnum.P2_S;
 			}
 		}
 		return DKLightsEnum.BAD_AREA;
@@ -201,7 +210,9 @@ public class DKLightsHelper
 			{
 				boolean isBroken = false;
 				if (i < bits.length())
+				{
 					isBroken = bits.get(i);
+				}
 
 				l.setBroken(isBroken);
 				lampPoints.add(l);
@@ -212,7 +223,7 @@ public class DKLightsHelper
 
 	// Return a sorted ArrayList of n world points such that the WorldPoint closest to the player
 	// is at index 0 and the farthest point is at index n-1.
-	public ArrayList<LampPoint> sortBrokenLamps(HashSet<LampPoint> lampPoints, WorldPoint currentPoint)
+	public ArrayList<LampPoint> sortBrokenLamps(HashSet<LampPoint> lampPoints, @NonNull WorldPoint currentPoint)
 	{
 
 		ArrayList<LampPoint> sortedPoints = new ArrayList<>(lampPoints);
