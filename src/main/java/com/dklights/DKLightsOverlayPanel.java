@@ -37,19 +37,25 @@ public class DKLightsOverlayPanel extends OverlayPanel
 		panelComponent.getChildren().clear();
 
 		HashMap<String, Integer> descriptionCount = new HashMap<>();
-		for(LampPoint l : lampPoints)
+		for (LampPoint l : lampPoints)
 		{
 			if (!descriptionCount.containsKey(l.getDescription()))
+			{
 				descriptionCount.put(l.getDescription(), 1);
+			}
 			else
-				descriptionCount.put(l.getDescription(), descriptionCount.get(l.getDescription())+1);
+			{
+				descriptionCount.put(l.getDescription(), descriptionCount.get(l.getDescription()) + 1);
+			}
 		}
 
 		for (String s : descriptionCount.keySet())
 		{
 			String num = " (x" + descriptionCount.get(s) + ")";
 			if (descriptionCount.get(s) == 1)
+			{
 				num = "";
+			}
 			addTextToOverlayPanel(s + num);
 		}
 

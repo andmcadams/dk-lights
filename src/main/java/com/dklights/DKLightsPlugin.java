@@ -64,7 +64,9 @@ public class DKLightsPlugin extends Plugin
 	{
 		Player player = client.getLocalPlayer();
 		if (player == null)
+		{
 			return;
+		}
 		WorldPoint tempPoint = player.getWorldLocation();
 		DKLightsEnum tempArea = helper.determineLocation(currentPoint);
 		int tempLamps = client.getVarbitValue(DK_LIGHTS);
@@ -74,7 +76,9 @@ public class DKLightsPlugin extends Plugin
 		{
 			currentArea = tempArea;
 			if (tempArea == DKLightsEnum.BAD_AREA)
+			{
 				return;
+			}
 			lampPoints = helper.findBrokenLamps(tempLamps, currentArea);
 		}
 
@@ -91,7 +95,9 @@ public class DKLightsPlugin extends Plugin
 				client.setHintArrow(closestLamp.getWorldPoint());
 			}
 			else
+			{
 				client.clearHintArrow();
+			}
 		}
 	}
 

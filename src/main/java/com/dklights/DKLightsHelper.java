@@ -121,23 +121,35 @@ public class DKLightsHelper
 			if (plane == 0)
 			{
 				if (y >= WORLDMAP_LINE)
+				{
 					return DKLightsEnum.P0_N;
+				}
 				else
+				{
 					return DKLightsEnum.P0_S;
+				}
 			}
 			else if (plane == 1)
 			{
 				if (y >= WORLDMAP_LINE)
+				{
 					return DKLightsEnum.P1_N;
+				}
 				else
+				{
 					return DKLightsEnum.P1_S;
+				}
 			}
 			else if (plane == 2)
 			{
 				if (y >= WORLDMAP_LINE)
+				{
 					return DKLightsEnum.P2_N;
+				}
 				else
+				{
 					return DKLightsEnum.P2_S;
+				}
 			}
 		}
 		return DKLightsEnum.BAD_AREA;
@@ -151,27 +163,33 @@ public class DKLightsHelper
 		BitSet bits = BitSet.valueOf(new long[]{lamps});
 		ArrayList<LampPoint> lampPoints = new ArrayList<>();
 
-		for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i+1))
+		for (int i = bits.nextSetBit(0); i >= 0; i = bits.nextSetBit(i + 1))
 		{
 			if (i == Integer.MAX_VALUE)
+			{
 				break;
+			}
 			// For this set bit, grab the lamp loc based on the current area
 			LampPoint l = maps.get(currentArea.value)[0].get(i);
 
 			// If there is no lamp indicated by the bit i in the first map square,
 			// the bit actually refers to a lamp in the other map square.
 			if (l == null)
+			{
 				l = maps.get(currentArea.value)[1].get(i);
+			}
 
 			if (l != null)
+			{
 				lampPoints.add(l);
+			}
 			else
+			{
 				log.warn("Bit " + i + " has a null value for both arrays!");
+			}
 		}
 		return lampPoints;
 	}
-
-
 
 	// Return a sorted ArrayList of n world points such that the WorldPoint closest to the player
 	// is at index 0 and the farthest point is at index n-1.
