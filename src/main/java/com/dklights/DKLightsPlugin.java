@@ -89,7 +89,7 @@ public class DKLightsPlugin extends Plugin
 		{
 			currentPoint = tempPoint;
 			lamps = tempLamps;
-			if (lampPoints.size() > 0)
+			if (lampPoints != null && lampPoints.size() > 0)
 			{
 				LampPoint closestLamp = helper.sortBrokenLamps(lampPoints, currentPoint).get(0);
 				client.clearHintArrow();
