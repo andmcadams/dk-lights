@@ -1,12 +1,14 @@
 package com.dklights;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -29,7 +31,7 @@ public class DKLightsPlugin extends Plugin
 	private OverlayManager overlayManager;
 
 	@Getter
-	private int lamps;
+	private static int lamps;
 
 	@Getter
 	private DKLightsEnum currentArea;
@@ -45,6 +47,9 @@ public class DKLightsPlugin extends Plugin
 	@Getter
 	private static ArrayList<LampPoint> lampPoints;
 
+	@Getter
+	private static HashMap<Integer, ArrayList<LampPoint>> areaLampPoints = new HashMap<>();
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -59,18 +64,30 @@ public class DKLightsPlugin extends Plugin
 		overlayManager.remove(overlayPanel);
 	}
 
+	private static int c = 0;
+	private static boolean tickFlag = true;
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
 		Player player = client.getLocalPlayer();
 		if (player == null)
 		{
+			c += 1;
 			return;
 		}
 		WorldPoint tempPoint = player.getWorldLocation();
-		DKLightsEnum tempArea = helper.determineLocation(currentPoint);
+		DKLightsEnum tempArea = helper.determineLocation(tempPoint);
 		int tempLamps = client.getVarbitValue(DK_LIGHTS);
 
+		// Because the varbit updates AFTER location change, we should wait a tick if the area
+		// changes but the lamp varbit does not.
+		// Otherwise, the new area may be updated with the bits from the previous area.
+		if (tempArea != currentArea && tempLamps == lamps && tickFlag)
+		{
+			tickFlag = false;
+			return;
+		}
+		tickFlag = true;
 		// If we have changed areas or the lamps varb, we need to reload the overlay.
 		if (tempArea != currentArea || tempLamps != lamps)
 		{
@@ -80,6 +97,7 @@ public class DKLightsPlugin extends Plugin
 				return;
 			}
 			lampPoints = helper.findBrokenLamps(tempLamps, currentArea);
+			areaLampPoints.put(currentArea.value, lampPoints);
 		}
 
 		// Point to the closest broken lamp after moving or fixing a lamp
@@ -100,5 +118,4 @@ public class DKLightsPlugin extends Plugin
 			}
 		}
 	}
-
 }
