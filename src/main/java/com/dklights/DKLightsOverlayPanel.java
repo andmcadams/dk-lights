@@ -54,6 +54,11 @@ public class DKLightsOverlayPanel extends OverlayPanel
 			addTextToOverlayPanel(s + num);
 		}
 
+		if (descriptionCount.keySet().isEmpty())
+		{
+			addTextToOverlayPanel("No broken lamps in this area");
+		}
+
 
 		return super.render(graphics);
 	}
