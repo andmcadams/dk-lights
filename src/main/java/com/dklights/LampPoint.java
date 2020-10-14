@@ -20,6 +20,10 @@ public class LampPoint
 	@Setter
 	private DKLightsEnum area = null;
 
+	@Getter
+	@Setter
+	private boolean isBroken = false;
+
 	public LampPoint(int bitPosition, WorldPoint worldPoint, String description)
 	{
 		this.bitPosition = bitPosition;
@@ -30,6 +34,9 @@ public class LampPoint
 	@Override
 	public boolean equals(Object o)
 	{
+		if (this == o)
+			return true;
+
 		if (!(o instanceof LampPoint))
 			return false;
 
