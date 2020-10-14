@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import javax.inject.Inject;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
@@ -32,34 +33,54 @@ public class DKLightsOverlayPanel extends OverlayPanel
 	public Dimension render(Graphics2D graphics)
 	{
 
+		HashMap<Integer, ArrayList<LampPoint>> areaLampPoints = plugin.getAreaLampPoints();
+
 		ArrayList<LampPoint> lampPoints = plugin.getLampPoints();
 
 		panelComponent.getChildren().clear();
 
-		HashMap<String, Integer> descriptionCount = new HashMap<>();
-		for (LampPoint l : lampPoints)
+		HashSet<LampPoint> uniquePoints = new HashSet<>();
+
+		for (ArrayList<LampPoint> l : areaLampPoints.values())
 		{
-			if (!descriptionCount.containsKey(l.getDescription()))
+			uniquePoints.addAll(l);
+		}
+
+		boolean addedText = false;
+		String[] areaNames = {"P0N", "P0S", "P1N", "P1S", "P2N", "P2S"};
+		for (int i = 0; i < DKLightsEnum.BAD_AREA.value; i++)
+		{
+			HashMap<String, Integer> descriptionCount = new HashMap<>();
+			for (LampPoint l : uniquePoints)
 			{
-				descriptionCount.put(l.getDescription(), 1);
+				if (l.getArea().value != i)
+					continue;
+
+				if (!descriptionCount.containsKey(l.getDescription()))
+				{
+					descriptionCount.put(l.getDescription(), 1);
+				}
+				else
+				{
+					descriptionCount.put(l.getDescription(), descriptionCount.get(l.getDescription()) + 1);
+				}
 			}
-			else
+
+			if (descriptionCount.size() != 0)
+				addTextToOverlayPanel(areaNames[i]);
+			for (String s : descriptionCount.keySet())
 			{
-				descriptionCount.put(l.getDescription(), descriptionCount.get(l.getDescription()) + 1);
+				String num = " (x" + descriptionCount.get(s) + ")";
+				if (descriptionCount.get(s) == 1)
+				{
+					num = "";
+				}
+				addTextToOverlayPanel(s + num);
+				addedText = true;
 			}
 		}
 
-		for (String s : descriptionCount.keySet())
-		{
-			String num = " (x" + descriptionCount.get(s) + ")";
-			if (descriptionCount.get(s) == 1)
-			{
-				num = "";
-			}
-			addTextToOverlayPanel(s + num);
-		}
-
-		if (descriptionCount.keySet().isEmpty())
+		if (!addedText)
 		{
 			addTextToOverlayPanel("No broken lamps in this area");
 		}
