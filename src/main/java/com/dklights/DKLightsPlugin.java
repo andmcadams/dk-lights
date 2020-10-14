@@ -1,5 +1,6 @@
 package com.dklights;
 
+import java.util.ArrayList;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class DKLightsPlugin extends Plugin
 		log.info("DKLights started!");
 		overlayManager.add(overlayPanel);
 		helper = new DKLightsHelper();
+		helper.init();
 	}
 
 	@Override
@@ -64,8 +66,17 @@ public class DKLightsPlugin extends Plugin
 		if (tempArea != currentArea || tempLamps != lamps)
 		{
 			currentArea = tempArea;
+			if (tempArea == DKLightsEnum.BAD_AREA)
+				return;
 			lamps = tempLamps;
-			helper.findBrokenLamps(lamps, currentArea);
+			ArrayList<WorldPoint> wps = helper.findBrokenLamps(lamps, currentArea);
+			log.info("Size: " + wps.size());
+			client.clearHintArrow();
+			for (WorldPoint wp : wps)
+			{
+				log.info("Creating hint arrow for wp " + wp);
+				client.setHintArrow(wp);
+			}
 		}
 	}
 
