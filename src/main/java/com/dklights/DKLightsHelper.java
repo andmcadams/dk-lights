@@ -166,7 +166,7 @@ public class DKLightsHelper
 			if (l != null)
 				lampPoints.add(l);
 			else
-				log.info("Bit " + i + " has a null value for both arrays!");
+				log.warn("Bit " + i + " has a null value for both arrays!");
 		}
 		return lampPoints;
 	}
