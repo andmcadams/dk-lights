@@ -125,7 +125,8 @@ public class DKLightsPlugin extends Plugin
 				{
 					LampPoint closestLamp = sortedLamps.get(0);
 					client.clearHintArrow();
-					client.setHintArrow(closestLamp.getWorldPoint());
+					if (currentPoint.getPlane() == closestLamp.getWorldPoint().getPlane())
+						client.setHintArrow(closestLamp.getWorldPoint());
 				}
 			}
 			else
