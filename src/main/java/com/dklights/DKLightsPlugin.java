@@ -46,19 +46,22 @@ public class DKLightsPlugin extends Plugin
 	private static final int DK_LIGHTS = 4038;
 
 	@Getter
-	private static HashSet<LampPoint> brokenLamps = new HashSet<>();
+	private static HashSet<LampPoint> brokenLamps;
 
 	@Override
 	protected void startUp() throws Exception
 	{
+		log.info("Startup");
 		overlayManager.add(overlayPanel);
 		helper = new DKLightsHelper();
 		helper.init();
+		brokenLamps = new HashSet<>();
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
+		log.info("Shutdown");
 		overlayManager.remove(overlayPanel);
 		client.clearHintArrow();
 	}
