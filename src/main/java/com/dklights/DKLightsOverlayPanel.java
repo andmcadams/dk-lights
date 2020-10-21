@@ -9,6 +9,8 @@ import java.util.LinkedHashMap;
 import javax.inject.Inject;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
+import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.LineComponent;
 
 public class DKLightsOverlayPanel extends OverlayPanel
@@ -22,7 +24,8 @@ public class DKLightsOverlayPanel extends OverlayPanel
 		super(plugin);
 		this.plugin = plugin;
 
-		setLayer(OverlayLayer.ALWAYS_ON_TOP);
+		setPosition(OverlayPosition.TOP_LEFT);
+		setPriority(OverlayPriority.HIGH);
 	}
 
 	private void addTextToOverlayPanel(String text)
