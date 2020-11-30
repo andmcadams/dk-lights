@@ -102,6 +102,14 @@ public class DKLightsPlugin extends Plugin
 		}
 		WorldPoint tempPoint = player.getWorldLocation();
 		DKLightsEnum tempArea = helper.determineLocation(tempPoint);
+		// Do not do anything if the player is not in Dorgesh-Kaan.
+		// This should fix the issue of arrows being removed in places other than DK.
+		if (tempArea == DKLightsEnum.BAD_AREA)
+		{
+			currentArea = tempArea;
+			return;
+		}
+
 		int tempLamps = client.getVarbitValue(DK_LIGHTS);
 
 		// Because the varbit updates AFTER location change, we should wait a tick if the area
@@ -118,10 +126,6 @@ public class DKLightsPlugin extends Plugin
 		if (tempArea != currentArea || tempLamps != lamps)
 		{
 			currentArea = tempArea;
-			if (tempArea == DKLightsEnum.BAD_AREA)
-			{
-				return;
-			}
 			ArrayList<LampPoint> lampPoints = helper.getAreaLamps(tempLamps, currentArea);
 			for (LampPoint l : lampPoints)
 			{
