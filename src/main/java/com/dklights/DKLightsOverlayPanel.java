@@ -63,7 +63,12 @@ public class DKLightsOverlayPanel extends OverlayPanel
 
 		HashSet<LampPoint> areaLampPoints = plugin.getBrokenLamps();
 
+		DKLightsEnum currentArea = plugin.getCurrentArea();
 		panelComponent.getChildren().clear();
+		if (currentArea == DKLightsEnum.BAD_AREA)
+		{
+			return null;
+		}
 
 		boolean addedText = false;
 		String[] areaNames = {"North Ground Floor", "South Ground Floor", "North Second Floor", "South Second Floor", "North Third Floor", "South Third Floor"};
