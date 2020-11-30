@@ -41,6 +41,11 @@ public class DKLightsHelper
 	// Anything with y >= 5312 is in the north map square of Dorgesh-Kaan
 	public static final int WORLDMAP_LINE = 5312;
 
+	public static final int DK_WEST_VALUE = 2688;
+	public static final int DK_EAST_VALUE = 2751;
+	public static final int DK_NORTH_VALUE = 5375;
+	public static final int DK_SOUTH_VALUE = 5248;
+
 	// HashMap containing WorldPoints for each lamp on Plane Pn for N(orth) and S(outh)
 	public final HashMap<Integer, LampPoint> P0_N = new HashMap<>();
 	public final HashMap<Integer, LampPoint> P0_S = new HashMap<>();
@@ -168,6 +173,13 @@ public class DKLightsHelper
 		// Note that this is very explicit for readability.
 		int plane = w.getPlane();
 		int y = w.getY();
+		int x = w.getX();
+
+		if (x < DK_WEST_VALUE || x > DK_EAST_VALUE || y > DK_NORTH_VALUE || y < DK_SOUTH_VALUE)
+		{
+			return DKLightsEnum.BAD_AREA;
+		}
+
 		if (plane == 0)
 		{
 			if (y >= WORLDMAP_LINE)
