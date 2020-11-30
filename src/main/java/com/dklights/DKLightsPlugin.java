@@ -25,7 +25,6 @@
 package com.dklights;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import javax.inject.Inject;
 import lombok.Getter;
@@ -33,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -142,7 +140,7 @@ public class DKLightsPlugin extends Plugin
 
 		// Point to the closest broken lamp after moving or fixing a lamp
 		// Note that tempArea != currentArea => tempPoint != currentPoint
-		if (tempPoint != currentPoint || tempLamps != lamps)
+		if (tempPoint.equals(currentPoint) || tempLamps != lamps)
 		{
 			currentPoint = tempPoint;
 			lamps = tempLamps;
