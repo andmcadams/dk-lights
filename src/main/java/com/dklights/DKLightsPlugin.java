@@ -85,7 +85,13 @@ public class DKLightsPlugin extends Plugin
 	{
 		log.info("Shutdown");
 		overlayManager.remove(overlayPanel);
-		client.clearHintArrow();
+		if (currentArea != DKLightsEnum.BAD_AREA)
+		{
+			client.clearHintArrow();
+		}
+		currentPoint = null;
+		currentArea = null;
+		lamps = 0;
 	}
 
 	private static boolean tickFlag = true;
@@ -100,13 +106,6 @@ public class DKLightsPlugin extends Plugin
 		}
 		WorldPoint tempPoint = player.getWorldLocation();
 		DKLightsEnum tempArea = helper.determineLocation(tempPoint);
-		// Do not do anything if the player is not in Dorgesh-Kaan.
-		// This should fix the issue of arrows being removed in places other than DK.
-		if (tempArea == DKLightsEnum.BAD_AREA)
-		{
-			currentArea = tempArea;
-			return;
-		}
 
 		int tempLamps = client.getVarbitValue(DK_LIGHTS);
 
@@ -119,6 +118,18 @@ public class DKLightsPlugin extends Plugin
 			return;
 		}
 		tickFlag = true;
+
+		// Do not do anything if the player is not in Dorgesh-Kaan.
+		// This should fix the issue of arrows being removed in places other than DK.
+		// If the player just went to a new area AND this is not the first pass, set vars and clear arrow.
+		if (tempArea != currentArea && tempArea == DKLightsEnum.BAD_AREA && currentArea != null)
+		{
+			currentArea = tempArea;
+			currentPoint = tempPoint;
+			lamps = 0;
+			client.clearHintArrow();
+			return;
+		}
 
 		// If we have changed areas or the lamps varb, we need to reload the overlay.
 		if (tempArea != currentArea || tempLamps != lamps)
