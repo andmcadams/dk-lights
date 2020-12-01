@@ -224,6 +224,11 @@ public class DKLightsHelper
 		BitSet bits = BitSet.valueOf(new long[]{lamps});
 		ArrayList<LampPoint> lampPoints = new ArrayList<>();
 
+		if (currentArea == DKLightsEnum.BAD_AREA)
+		{
+			return lampPoints;
+		}
+
 		HashMap<Integer, LampPoint> currentMap = maps.get(currentArea.value)[0];
 		HashMap<Integer, LampPoint> oppositeMap = maps.get(currentArea.value)[1];
 
