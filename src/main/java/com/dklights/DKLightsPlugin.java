@@ -1,7 +1,30 @@
+/*
+ * Copyright (c) 2020, andmcadams
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.dklights;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import javax.inject.Inject;
 import lombok.Getter;
@@ -9,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ClientTick;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -46,21 +68,30 @@ public class DKLightsPlugin extends Plugin
 	private static final int DK_LIGHTS = 4038;
 
 	@Getter
-	private static HashSet<LampPoint> brokenLamps = new HashSet<>();
+	private static HashSet<LampPoint> brokenLamps;
 
 	@Override
 	protected void startUp() throws Exception
 	{
+		log.info("Startup");
 		overlayManager.add(overlayPanel);
 		helper = new DKLightsHelper();
 		helper.init();
+		brokenLamps = new HashSet<>();
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
+		log.info("Shutdown");
 		overlayManager.remove(overlayPanel);
-		client.clearHintArrow();
+		if (currentArea != DKLightsEnum.BAD_AREA)
+		{
+			client.clearHintArrow();
+		}
+		currentPoint = null;
+		currentArea = null;
+		lamps = 0;
 	}
 
 	private static boolean tickFlag = true;
@@ -75,6 +106,7 @@ public class DKLightsPlugin extends Plugin
 		}
 		WorldPoint tempPoint = player.getWorldLocation();
 		DKLightsEnum tempArea = helper.determineLocation(tempPoint);
+
 		int tempLamps = client.getVarbitValue(DK_LIGHTS);
 
 		// Because the varbit updates AFTER location change, we should wait a tick if the area
@@ -87,14 +119,22 @@ public class DKLightsPlugin extends Plugin
 		}
 		tickFlag = true;
 
+		// Do not do anything if the player is not in Dorgesh-Kaan.
+		// This should fix the issue of arrows being removed in places other than DK.
+		// If the player just went to a new area AND this is not the first pass, set vars and clear arrow.
+		if (tempArea != currentArea && tempArea == DKLightsEnum.BAD_AREA && currentArea != null)
+		{
+			currentArea = tempArea;
+			currentPoint = tempPoint;
+			lamps = 0;
+			client.clearHintArrow();
+			return;
+		}
+
 		// If we have changed areas or the lamps varb, we need to reload the overlay.
 		if (tempArea != currentArea || tempLamps != lamps)
 		{
 			currentArea = tempArea;
-			if (tempArea == DKLightsEnum.BAD_AREA)
-			{
-				return;
-			}
 			ArrayList<LampPoint> lampPoints = helper.getAreaLamps(tempLamps, currentArea);
 			for (LampPoint l : lampPoints)
 			{
@@ -111,7 +151,7 @@ public class DKLightsPlugin extends Plugin
 
 		// Point to the closest broken lamp after moving or fixing a lamp
 		// Note that tempArea != currentArea => tempPoint != currentPoint
-		if (tempPoint != currentPoint || tempLamps != lamps)
+		if (tempPoint.equals(currentPoint) || tempLamps != lamps)
 		{
 			currentPoint = tempPoint;
 			lamps = tempLamps;
@@ -122,7 +162,8 @@ public class DKLightsPlugin extends Plugin
 				{
 					LampPoint closestLamp = sortedLamps.get(0);
 					client.clearHintArrow();
-					client.setHintArrow(closestLamp.getWorldPoint());
+					if (currentPoint.getPlane() == closestLamp.getWorldPoint().getPlane())
+						client.setHintArrow(closestLamp.getWorldPoint());
 				}
 			}
 			else

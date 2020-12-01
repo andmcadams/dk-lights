@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2020, andmcadams
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.dklights;
 
 import java.util.ArrayList;
@@ -16,6 +40,11 @@ public class DKLightsHelper
 
 	// Anything with y >= 5312 is in the north map square of Dorgesh-Kaan
 	public static final int WORLDMAP_LINE = 5312;
+
+	public static final int DK_WEST_VALUE = 2688;
+	public static final int DK_EAST_VALUE = 2751;
+	public static final int DK_NORTH_VALUE = 5375;
+	public static final int DK_SOUTH_VALUE = 5248;
 
 	// HashMap containing WorldPoints for each lamp on Plane Pn for N(orth) and S(outh)
 	public final HashMap<Integer, LampPoint> P0_N = new HashMap<>();
@@ -144,6 +173,13 @@ public class DKLightsHelper
 		// Note that this is very explicit for readability.
 		int plane = w.getPlane();
 		int y = w.getY();
+		int x = w.getX();
+
+		if (x < DK_WEST_VALUE || x > DK_EAST_VALUE || y > DK_NORTH_VALUE || y < DK_SOUTH_VALUE)
+		{
+			return DKLightsEnum.BAD_AREA;
+		}
+
 		if (plane == 0)
 		{
 			if (y >= WORLDMAP_LINE)
@@ -187,6 +223,11 @@ public class DKLightsHelper
 	{
 		BitSet bits = BitSet.valueOf(new long[]{lamps});
 		ArrayList<LampPoint> lampPoints = new ArrayList<>();
+
+		if (currentArea == DKLightsEnum.BAD_AREA)
+		{
+			return lampPoints;
+		}
 
 		HashMap<Integer, LampPoint> currentMap = maps.get(currentArea.value)[0];
 		HashMap<Integer, LampPoint> oppositeMap = maps.get(currentArea.value)[1];
