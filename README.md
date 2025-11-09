@@ -6,7 +6,20 @@ A varbit (4038) gives information about which lamps are broken. This varbit is e
 The position of the bit and the area that the player is in can be used to immediately figure out which lamps are out in the current area.
 Additionally, some bits are shared between areas on the same plane. Some low order bits (little endian) are shared between areas on the same plane as well.
 
-## Usage
+## Features
+- **Smart Pathfinding:** Draws a tile-by-tile path to the nearest broken lamp.
+- **Utility Pathing:** Automatically switches to pathing to the bank or the wire machine (in a separate color) when you run out of lightbulbs.
+- **Lamp Highlighting:** Highlights broken lamps in the game world. You can also configure it to highlight working lamps or all lamps with custom colors.
+- **Object Highlighting:**
+  - Highlights the wire machine and displays its respawn timer when used.
+  - Highlights "informative" stairs/ladders that lead to floors with unknown lamp statuses.
+  - Highlights doors and stairs that are part of your currently calculated path.
+  - Optionally highlights all closed doors in the city.
+- **Side Panel Map:** Adds a convenient side panel with a full map of all three floors of Dorgesh-Kaan, showing the real-time status of every lamp and your player's location.
+- **Stats Overlay:** Displays an overlay with your current target (Lamp, Bank, Wiring machine), the distance to it, lamps fixed this session, total lamps fixed, and your lamps-per-hour rate.
+- **Teleport Hint:** Highlights your Dorgesh-Kaan sphere in your inventory if the closest broken lamp is very far away, letting you know it might be faster to teleport and reset the minigame.
+
+## Legacy Usage
 With the plugin on, run around Dorgesh-Kaan. As you pass into each of the six "areas", the overlay will update to let you know where the broken lamps are.
 Each lamp has a hint associated with it, but due to the lack of well-known landmarks in the area, the hints are sometimes vague.
 The closest lamp will be indicated by a hint arrow. Note that due to the layout of the city, the closest point will not necessarily take the fewest steps to reach.

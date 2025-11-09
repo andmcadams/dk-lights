@@ -2,7 +2,6 @@ package com.dklights;
 
 import java.awt.Color;
 
-import com.dklights.enums.DisplayFloorType;
 import com.dklights.enums.HighlightType;
 import com.dklights.enums.PathDrawStyle;
 import com.dklights.enums.TimerType;
