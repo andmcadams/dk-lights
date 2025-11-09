@@ -24,15 +24,31 @@
  */
 package com.dklights;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import com.dklights.enums.InventoryState;
+import com.dklights.overlay.DKLightsOverlay;
+import com.dklights.overlay.StatsOverlay;
+import com.dklights.overlay.TeleportOverlay;
+import com.dklights.overlay.LegacyOverlay;
+import com.dklights.pathfinder.Pathfinder;
+import com.google.inject.Provides;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.inject.Inject;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.GameObjectDespawned;
+import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.WallObjectDespawned;
+import net.runelite.api.events.WallObjectSpawned;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -44,132 +60,174 @@ import net.runelite.client.ui.overlay.OverlayManager;
 )
 public class DKLightsPlugin extends Plugin
 {
+
 	@Inject
+	@Getter
 	private Client client;
 
 	@Inject
-	private DKLightsOverlayPanel overlayPanel;
+	@Getter
+	private DKLightsConfig config;
 
 	@Inject
 	private OverlayManager overlayManager;
 
+	@Inject
+	private DKLightsOverlay overlay;
+
+	@Inject
+	private TeleportOverlay teleportOverlay;
+
+	@Inject
+	private StatsOverlay statsOverlay;
+
+	@Inject
+	private LegacyOverlay legacyOverlay;
+
+    @Getter
+	private DKLightsNavigationManager navigationManager;
 	@Getter
-	private static int lamps;
+	private DKLightsStatsTracker statsTracker;
+	@Getter
+	private DKLightsStateManager stateManager;
+
+	private ExecutorService pathfindingExecutor;
 
 	@Getter
-	private DKLightsEnum currentArea;
+	private Pathfinder pathfinder;
 
 	@Getter
-	private WorldPoint currentPoint;
-
-	private static DKLightsHelper helper;
-
-	// This varbit tells you which lamps are broken based on plane and map square
-	private static final int DK_LIGHTS = 4038;
-
-	@Getter
-	private static HashSet<LampPoint> brokenLamps;
+	private Instant lastTickInstant = Instant.now();
 
 	@Override
 	protected void startUp() throws Exception
 	{
-		log.info("Startup");
-		overlayManager.add(overlayPanel);
-		helper = new DKLightsHelper();
-		helper.init();
-		brokenLamps = new HashSet<>();
+		overlayManager.add(overlay);
+		overlayManager.add(teleportOverlay);
+		overlayManager.add(statsOverlay);
+		overlayManager.add(legacyOverlay);
+
+		statsTracker = new DKLightsStatsTracker();
+		stateManager = new DKLightsStateManager(client, statsTracker);
+
+		pathfindingExecutor = Executors.newSingleThreadExecutor(r ->
+		{
+			Thread t = new Thread(r, "DKLights-Pathfinder");
+			t.setDaemon(true);
+			return t;
+		});
+
+		try
+		{
+			pathfinder = new Pathfinder();
+		}
+		catch (IOException e)
+		{
+			log.error("Failed to load pathfinder collision data", e);
+			return;
+		}
+
+		navigationManager = new DKLightsNavigationManager(client, config, pathfinder, pathfindingExecutor);
+
 	}
 
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.info("Shutdown");
-		overlayManager.remove(overlayPanel);
-		if (currentArea != DKLightsEnum.BAD_AREA)
-		{
-			client.clearHintArrow();
-		}
-		currentPoint = null;
-		currentArea = null;
-		lamps = 0;
-	}
+		log.info("Dorgesh-Kaan Lamps stopped!");
+		overlayManager.remove(overlay);
+		overlayManager.remove(teleportOverlay);
+		overlayManager.remove(statsOverlay);
+		overlayManager.remove(legacyOverlay);
 
-	private static boolean tickFlag = true;
+		navigationManager.shutDown();
+
+		if (stateManager != null)
+		{
+			stateManager.shutDown();
+		}
+		if (navigationManager != null)
+		{
+			navigationManager.shutDown();
+		}
+		if (pathfindingExecutor != null)
+		{
+			pathfindingExecutor.shutdown();
+		}
+	}
 
 	@Subscribe
-	public void onGameTick(GameTick event)
+	public void onGameObjectSpawned(GameObjectSpawned event)
 	{
-		Player player = client.getLocalPlayer();
-		if (player == null)
+		stateManager.onGameObjectSpawned(event.getGameObject());
+	}
+
+	@Subscribe
+	public void onGameObjectDespawned(GameObjectDespawned event)
+	{
+		stateManager.onGameObjectDespawned(event.getGameObject());
+	}
+
+	@Subscribe
+	public void onWallObjectSpawned(WallObjectSpawned event)
+	{
+		stateManager.onWallObjectSpawned(event.getWallObject());
+	}
+
+	@Subscribe
+	public void onWallObjectDespawned(WallObjectDespawned event)
+	{
+		stateManager.onWallObjectDespawned(event.getWallObject());
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	{
+		stateManager.onGameStateChanged(gameStateChanged.getGameState());
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage chatMessage)
+	{
+		stateManager.onChatMessage(chatMessage);
+		statsTracker.onChatMessage(chatMessage);
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick gameTick)
+	{
+		lastTickInstant = Instant.now();
+
+		if (client.getLocalPlayer() == null)
 		{
 			return;
 		}
-		WorldPoint tempPoint = player.getWorldLocation();
-		DKLightsEnum tempArea = helper.determineLocation(tempPoint);
 
-		int tempLamps = client.getVarbitValue(DK_LIGHTS);
+		stateManager.onGameTick();
 
-		// Because the varbit updates AFTER location change, we should wait a tick if the area
-		// changes but the lamp varbit does not.
-		// Otherwise, the new area may be updated with the bits from the previous area.
-		if (tempArea != currentArea && tempLamps == lamps && tickFlag)
+		if (stateManager.getCurrentArea() == null)
 		{
-			tickFlag = false;
-			return;
-		}
-		tickFlag = true;
-
-		// Do not do anything if the player is not in Dorgesh-Kaan.
-		// This should fix the issue of arrows being removed in places other than DK.
-		// If the player just went to a new area AND this is not the first pass, set vars and clear arrow.
-		if (tempArea != currentArea && tempArea == DKLightsEnum.BAD_AREA && currentArea != null)
-		{
-			currentArea = tempArea;
-			currentPoint = tempPoint;
-			lamps = 0;
+			if (navigationManager != null)
+			{
+				navigationManager.clearPathAndTarget();
+			}
 			client.clearHintArrow();
 			return;
 		}
 
-		// If we have changed areas or the lamps varb, we need to reload the overlay.
-		if (tempArea != currentArea || tempLamps != lamps)
-		{
-			currentArea = tempArea;
-			ArrayList<LampPoint> lampPoints = helper.getAreaLamps(tempLamps, currentArea);
-			for (LampPoint l : lampPoints)
-			{
-				if (l.isBroken())
-				{
-					brokenLamps.add(l);
-				}
-				else
-				{
-					brokenLamps.remove(l);
-				}
-			}
-		}
+		InventoryState inventoryState = InventoryState.NO_LIGHT_BULBS.getInventoryState(client);
+		WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
 
-		// Point to the closest broken lamp after moving or fixing a lamp
-		// Note that tempArea != currentArea => tempPoint != currentPoint
-		if (tempPoint.equals(currentPoint) || tempLamps != lamps)
-		{
-			currentPoint = tempPoint;
-			lamps = tempLamps;
-			if (brokenLamps != null && brokenLamps.size() > 0)
-			{
-				ArrayList<LampPoint> sortedLamps = helper.sortBrokenLamps(brokenLamps, currentPoint);
-				if (!sortedLamps.isEmpty())
-				{
-					LampPoint closestLamp = sortedLamps.get(0);
-					client.clearHintArrow();
-					if (currentPoint.getPlane() == closestLamp.getWorldPoint().getPlane())
-						client.setHintArrow(closestLamp.getWorldPoint());
-				}
-			}
-			else
-			{
-				client.clearHintArrow();
-			}
-		}
+		navigationManager.update(stateManager.getLampStatuses(), stateManager.getLampWallCache(), inventoryState,
+				playerLocation, stateManager.getWireMachine());
+
+		client.clearHintArrow();
+	}
+
+	@Provides
+	DKLightsConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(DKLightsConfig.class);
 	}
 }
+
