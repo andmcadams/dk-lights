@@ -1,284 +1,339 @@
-/*
- * Copyright (c) 2020, andmcadams
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package com.dklights;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import lombok.NonNull;
-import net.runelite.api.coords.WorldPoint;
-import lombok.extern.slf4j.Slf4j;
+import com.dklights.enums.Area;
+import com.dklights.enums.Lamp;
+import com.dklights.enums.LampStatus;
+import com.dklights.enums.Transport;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
-@Slf4j
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import net.runelite.api.coords.WorldPoint;
+
 public class DKLightsHelper
 {
+	private static final Map<Area, Set<Lamp>> LAMPS_BY_AREA;
+	private static final Map<Integer, Set<Lamp>> LAMPS_BY_BIT_POSITION;
+	private static final Map<Integer, Lamp> LAMPS_BY_OBJECT_ID;
+	private static final Map<WorldPoint, Lamp> LAMPS_BY_WORLD_POINT;
 
-	// Anything with y >= 5312 is in the north map square of Dorgesh-Kaan
-	public static final int WORLDMAP_LINE = 5312;
+	private static final Map<Area, Set<Integer>> BIT_POSITIONS_BY_AREA;
+	private static final Map<Area, Integer> MAX_BIT_BY_AREA;
 
-	public static final int DK_WEST_VALUE = 2688;
-	public static final int DK_EAST_VALUE = 2751;
-	public static final int DK_NORTH_VALUE = 5375;
-	public static final int DK_SOUTH_VALUE = 5248;
-
-	// HashMap containing WorldPoints for each lamp on Plane Pn for N(orth) and S(outh)
-	public final HashMap<Integer, LampPoint> P0_N = new HashMap<>();
-	public final HashMap<Integer, LampPoint> P0_S = new HashMap<>();
-	public final HashMap<Integer, LampPoint> P1_N = new HashMap<>();
-	public final HashMap<Integer, LampPoint> P1_S = new HashMap<>();
-	public final HashMap<Integer, LampPoint> P2_N = new HashMap<>();
-	public final HashMap<Integer, LampPoint> P2_S = new HashMap<>();
-
-	public final HashMap<Integer, HashMap<Integer, LampPoint>[]> maps = new HashMap<>();
-
-	// Initialize the HashMaps for each region with the points found in them.
-	// The key refers to the bit in the Dorgesh-Kaan lamps varbit that the lamp
-	// is indicated by (little-endian bits). The value is the WorldPoint of the lamp.
-	public void init()
+	static
 	{
-		P0_N.put(5, new LampPoint(5, new WorldPoint(2691, 5328, 0), "Room just NW of the market"));
-		P0_N.put(6, new LampPoint(6, new WorldPoint(2746, 5323, 0), "Group of rooms just NE of the market"));
-		P0_N.put(7, new LampPoint(7, new WorldPoint(2749, 5329, 0), "Group of rooms just NE of the market"));
-		P0_N.put(8, new LampPoint(8, new WorldPoint(2742, 5327, 0), "Group of rooms just NE of the market"));
-		P0_N.put(9, new LampPoint(9, new WorldPoint(2737, 5324, 0), "Group of rooms just NE of the market"));
-		P0_N.put(10, new LampPoint(10, new WorldPoint(2701, 5345, 0), "Bank area"));
-		P0_N.put(11, new LampPoint(11, new WorldPoint(2706, 5354, 0), "Bank area"));
-		P0_N.put(12, new LampPoint(12, new WorldPoint(2701, 5362, 0), "Oldak's teleportation lab"));
-		P0_N.put(13, new LampPoint(13, new WorldPoint(2706, 5369, 0), "Oldak's teleportation lab"));
-		P0_N.put(14, new LampPoint(14, new WorldPoint(2745, 5360, 0), "NE most room"));
-		P0_N.put(15, new LampPoint(15, new WorldPoint(2739, 5360, 0), "NE most room"));
-		P0_N.put(16, new LampPoint(16, new WorldPoint(2736, 5350, 0), "Room east of the bank area"));
-		P0_N.put(17, new LampPoint(17, new WorldPoint(2747, 5348, 0), "Group of rooms just NE of the market"));
-		P0_N.put(18, new LampPoint(18, new WorldPoint(2741, 5344, 0), "Group of rooms just NE of the market"));
-		P0_N.put(19, new LampPoint(19, new WorldPoint(2744, 5348, 0), "Group of rooms just NE of the market"));
-
-		P0_S.put(0, new LampPoint(0, new WorldPoint(2738, 5283, 0), "Group of rooms just SE of the market"));
-		P0_S.put(1, new LampPoint(1, new WorldPoint(2749, 5292, 0), "Group of rooms just SE of the market"));
-		P0_S.put(2, new LampPoint(2, new WorldPoint(2744, 5299, 0), "Group of rooms just SE of the market"));
-		P0_S.put(3, new LampPoint(3, new WorldPoint(2690, 5302, 0), "Group of rooms just SW of the market"));
-		P0_S.put(4, new LampPoint(4, new WorldPoint(2698, 5302, 0), "Group of rooms just SW of the market"));
-		P0_S.put(10, new LampPoint(10, new WorldPoint(2699, 5256, 0), "SW most group of rooms"));
-		P0_S.put(11, new LampPoint(11, new WorldPoint(2695, 5260, 0), "SW most group of rooms"));
-		P0_S.put(12, new LampPoint(12, new WorldPoint(2698, 5269, 0), "SW most group of rooms"));
-		P0_S.put(13, new LampPoint(13, new WorldPoint(2735, 5278, 0), "Eastern house in south part of the city"));
-		P0_S.put(14, new LampPoint(14, new WorldPoint(2739, 5253, 0), "SE most group of rooms"));
-		P0_S.put(15, new LampPoint(15, new WorldPoint(2749, 5261, 0), "SE most group of rooms"));
-		P0_S.put(16, new LampPoint(16, new WorldPoint(2707, 5274, 0), "House just west of the wire machine"));
-
-		P1_N.put(5, new LampPoint(5, new WorldPoint(2693, 5331, 1), "Western house with a garden"));
-		P1_N.put(6, new LampPoint(6, new WorldPoint(2742, 5335, 1), "Nursery"));
-		P1_N.put(7, new LampPoint(7, new WorldPoint(2738, 5324, 1), "House south of the nursery"));
-		P1_N.put(8, new LampPoint(8, new WorldPoint(2693, 5333, 1), "Western house with a garden"));
-		P1_N.put(9, new LampPoint(9, new WorldPoint(2742, 5341, 1), "Nursery"));
-		P1_N.put(10, new LampPoint(10, new WorldPoint(2697, 5344, 1), "Western house north of the garden house"));
-		P1_N.put(11, new LampPoint(11, new WorldPoint(2705, 5354, 1), "House just south of Oldak's lab"));
-		P1_N.put(12, new LampPoint(12, new WorldPoint(2716, 5364, 1), "Council chamber"));
-		P1_N.put(13, new LampPoint(13, new WorldPoint(2736, 5363, 1), "House with Ur-tag"));
-		P1_N.put(14, new LampPoint(14, new WorldPoint(2739, 5362, 1), "House just east of Ur-tag"));
-		P1_N.put(15, new LampPoint(15, new WorldPoint(2733, 5350, 1), "House just south of Ur-tag"));
-		P1_N.put(16, new LampPoint(16, new WorldPoint(2705, 5348, 1), "House just south of Oldak's lab"));
-
-		P1_S.put(0, new LampPoint(0, new WorldPoint(2699, 5305, 1), "Western house"));
-		P1_S.put(1, new LampPoint(1, new WorldPoint(2739, 5286, 1), "Eastern house"));
-		P1_S.put(2, new LampPoint(2, new WorldPoint(2737, 5294, 1), "Eastern house"));
-		P1_S.put(3, new LampPoint(3, new WorldPoint(2741, 5283, 1), "Eastern house"));
-		P1_S.put(4, new LampPoint(4, new WorldPoint(2695, 5294, 1), "Western house"));
-		P1_S.put(10, new LampPoint(10, new WorldPoint(2736, 5272, 1), "Upstairs of the eastern house in the south part of the city"));
-		P1_S.put(11, new LampPoint(11, new WorldPoint(2731, 5272, 1), "Upstairs of the eastern house in the south part of the city"));
-		P1_S.put(12, new LampPoint(12, new WorldPoint(2736, 5278, 1), "Upstairs of the eastern house in the south part of the city"));
-		P1_S.put(13, new LampPoint(13, new WorldPoint(2709, 5270, 1), "Upstairs of the house west of the wire machine"));
-		P1_S.put(14, new LampPoint(14, new WorldPoint(2707, 5278, 1), "Upstairs of the house west of the wire machine"));
-
-		P2_N.put(9, new LampPoint(9, new WorldPoint(2746, 5355, 2), "Zanik's bedroom"));
-		P2_N.put(10, new LampPoint(10, new WorldPoint(2739, 5362, 2), "Upstairs of the house just east of Ur-tag"));
-		P2_N.put(11, new LampPoint(11, new WorldPoint(2736, 5363, 2), "Upstairs of the house with Ur-tag"));
-		P2_N.put(12, new LampPoint(12, new WorldPoint(2729, 5368, 2), "Upstairs of the house with Ur-tag"));
-
-		P2_S.put(0, new LampPoint(0, new WorldPoint(2741, 5283, 2), "Upstairs of the eastern house two houses south of the empty building"));
-		P2_S.put(1, new LampPoint(1, new WorldPoint(2737, 5298, 2), "Upstairs of the eastern house just south of the empty building"));
-		P2_S.put(2, new LampPoint(2, new WorldPoint(2741, 5294, 2), "Upstairs of the eastern house just south of the empty building"));
-		P2_S.put(3, new LampPoint(3, new WorldPoint(2741, 5287, 2), "Upstairs of the eastern house two houses south of the empty building"));
-		P2_S.put(4, new LampPoint(4, new WorldPoint(2744, 5282, 2), "Upstairs of the eastern house two houses south of the empty building"));
-		P2_S.put(5, new LampPoint(5, new WorldPoint(2695, 5294, 2), "Upstairs of the western house just north of the train station"));
-		P2_S.put(6, new LampPoint(6, new WorldPoint(2699, 5289, 2), "Upstairs of the western house just north of the train station"));
-		P2_S.put(7, new LampPoint(7, new WorldPoint(2699, 5305, 2), "Upstairs of the western house two houses north of the train station"));
-		P2_S.put(8, new LampPoint(8, new WorldPoint(2695, 5301, 2), "Upstairs of the western house two houses north of the train station"));
-		P2_S.put(9, new LampPoint(9, new WorldPoint(2740, 5264, 2), "Upstairs of the SE most house"));
-
-		// There is probably a more concise way of doing this
-		for (Integer key : P0_N.keySet())
+		ImmutableMap.Builder<Area, Set<Lamp>> areaBuilder = new ImmutableMap.Builder<>();
+		for (Area area : Area.values())
 		{
-			P0_N.get(key).setArea(DKLightsEnum.P0_N);
+			Set<Lamp> lampsInArea = Sets.immutableEnumSet(java.util.Arrays.stream(Lamp.values())
+					.filter(lamp -> lamp.getArea() == area).collect(Collectors.toSet()));
+			areaBuilder.put(area, lampsInArea);
 		}
-		for (Integer key : P0_S.keySet())
-		{
-			P0_S.get(key).setArea(DKLightsEnum.P0_S);
-		}
-		for (Integer key : P1_N.keySet())
-		{
-			P1_N.get(key).setArea(DKLightsEnum.P1_N);
-		}
-		for (Integer key : P1_S.keySet())
-		{
-			P1_S.get(key).setArea(DKLightsEnum.P1_S);
-		}
-		for (Integer key : P2_N.keySet())
-		{
-			P2_N.get(key).setArea(DKLightsEnum.P2_N);
-		}
-		for (Integer key : P2_S.keySet())
-		{
-			P2_S.get(key).setArea(DKLightsEnum.P2_S);
-		}
+		LAMPS_BY_AREA = areaBuilder.build();
 
-		maps.put(DKLightsEnum.P0_N.value, new HashMap[]{P0_N, P0_S});
-		maps.put(DKLightsEnum.P0_S.value, new HashMap[]{P0_S, P0_N});
-		maps.put(DKLightsEnum.P1_N.value, new HashMap[]{P1_N, P1_S});
-		maps.put(DKLightsEnum.P1_S.value, new HashMap[]{P1_S, P1_N});
-		maps.put(DKLightsEnum.P2_N.value, new HashMap[]{P2_N, P2_S});
-		maps.put(DKLightsEnum.P2_S.value, new HashMap[]{P2_S, P2_N});
+		ImmutableMap.Builder<Integer, Set<Lamp>> bitBuilder = new ImmutableMap.Builder<>();
+		for (int i = 0; i < 32; i++)
+		{
+			final int bit = i;
+			Set<Lamp> lampsForBit = Sets.immutableEnumSet(java.util.Arrays.stream(Lamp.values())
+					.filter(lamp -> lamp.getBitPosition() == bit).collect(Collectors.toSet()));
+			if (!lampsForBit.isEmpty())
+			{
+				bitBuilder.put(i, lampsForBit);
+			}
+		}
+		LAMPS_BY_BIT_POSITION = bitBuilder.build();
+
+		ImmutableMap.Builder<Integer, Lamp> idBuilder = new ImmutableMap.Builder<>();
+		ImmutableMap.Builder<WorldPoint, Lamp> wpBuilder = new ImmutableMap.Builder<>();
+		for (Lamp lamp : Lamp.values())
+		{
+			idBuilder.put(lamp.getObjectId(), lamp);
+			wpBuilder.put(lamp.getWorldPoint(), lamp);
+		}
+		LAMPS_BY_OBJECT_ID = idBuilder.build();
+		LAMPS_BY_WORLD_POINT = wpBuilder.build();
+
+		ImmutableMap.Builder<Area, Set<Integer>> bitPosBuilder = new ImmutableMap.Builder<>();
+		ImmutableMap.Builder<Area, Integer> maxBitBuilder = new ImmutableMap.Builder<>();
+		for (Area area : Area.values())
+		{
+			Set<Lamp> lamps = LAMPS_BY_AREA.get(area);
+			if (lamps == null || lamps.isEmpty())
+			{
+				bitPosBuilder.put(area, Collections.emptySet());
+				maxBitBuilder.put(area, 0);
+				continue;
+			}
+
+			Set<Integer> bits = lamps.stream().map(Lamp::getBitPosition).collect(Collectors.toSet());
+			bitPosBuilder.put(area, bits);
+
+			int maxBit = lamps.stream().mapToInt(Lamp::getBitPosition).max().orElse(0);
+			maxBitBuilder.put(area, maxBit);
+		}
+		BIT_POSITIONS_BY_AREA = bitPosBuilder.build();
+		MAX_BIT_BY_AREA = maxBitBuilder.build();
 	}
 
-	// Determine which region of Dorgesh-Kaan the player is currently in.
-	// The city is split across a northern and southern map square.
-	// The interpretation of the Dorgesh-Kaan lamps varbit depends on whether the player is in the
-	// north or south square and which plane the player is located in.
-	public DKLightsEnum determineLocation(@NonNull WorldPoint w)
+	public static Set<Lamp> getLampsByArea(Area area)
 	{
-		// Note that this is very explicit for readability.
-		int plane = w.getPlane();
-		int y = w.getY();
-		int x = w.getX();
+		return LAMPS_BY_AREA.getOrDefault(area, Collections.emptySet());
+	}
 
-		if (x < DK_WEST_VALUE || x > DK_EAST_VALUE || y > DK_NORTH_VALUE || y < DK_SOUTH_VALUE)
+	public static Area getArea(WorldPoint worldPoint)
+	{
+		int plane = worldPoint.getPlane();
+		int y = worldPoint.getY();
+		int x = worldPoint.getX();
+
+		if (x < DKLightsConstants.DK_WEST_VALUE || x > DKLightsConstants.DK_EAST_VALUE
+				|| y > DKLightsConstants.DK_NORTH_VALUE || y < DKLightsConstants.DK_SOUTH_VALUE)
 		{
-			return DKLightsEnum.BAD_AREA;
+			return null;
 		}
 
 		if (plane == 0)
 		{
-			if (y >= WORLDMAP_LINE)
-			{
-				return DKLightsEnum.P0_N;
-			}
-			else
-			{
-				return DKLightsEnum.P0_S;
-			}
+			return y >= DKLightsConstants.WORLD_MAP_LINE ? Area.P0_N : Area.P0_S;
 		}
 		else if (plane == 1)
 		{
-			if (y >= WORLDMAP_LINE)
-			{
-				return DKLightsEnum.P1_N;
-			}
-			else
-			{
-				return DKLightsEnum.P1_S;
-			}
+			return y >= DKLightsConstants.WORLD_MAP_LINE ? Area.P1_N : Area.P1_S;
 		}
 		else if (plane == 2)
 		{
-			if (y >= WORLDMAP_LINE)
-			{
-				return DKLightsEnum.P2_N;
-			}
-			else
-			{
-				return DKLightsEnum.P2_S;
-			}
+			return y >= DKLightsConstants.WORLD_MAP_LINE ? Area.P2_N : Area.P2_S;
 		}
-		return DKLightsEnum.BAD_AREA;
+		return null;
 	}
 
-	// Return a list of LampPoint objects corresponding to the broken lamps
-	// based on the player's current region.
-	// Typically, the parameter lamps should be the value of the Dorgesh-Kaan lamps varbit (4038).
-	public ArrayList<LampPoint> getAreaLamps(int lamps, DKLightsEnum currentArea)
+	public static Lamp getLamp(int objectId)
 	{
-		BitSet bits = BitSet.valueOf(new long[]{lamps});
-		ArrayList<LampPoint> lampPoints = new ArrayList<>();
+		return LAMPS_BY_OBJECT_ID.get(objectId);
+	}
 
-		if (currentArea == DKLightsEnum.BAD_AREA)
+	public static Lamp getLamp(WorldPoint worldPoint)
+	{
+		return LAMPS_BY_WORLD_POINT.get(worldPoint);
+	}
+
+	public static boolean isLamp(int objectId)
+	{
+		return LAMPS_BY_OBJECT_ID.containsKey(objectId);
+	}
+
+	public static Set<Lamp> getBrokenLamps(int varbitValue, Area currentArea)
+	{
+		Set<Lamp> brokenLamps = Sets.newEnumSet(Collections.emptySet(), Lamp.class);
+		if (currentArea == null)
 		{
-			return lampPoints;
+			return brokenLamps;
 		}
 
-		HashMap<Integer, LampPoint> currentMap = maps.get(currentArea.value)[0];
-		HashMap<Integer, LampPoint> oppositeMap = maps.get(currentArea.value)[1];
+		Area oppositeArea = currentArea.getOpposite();
+		Set<Lamp> lampsInCurrentArea = getLampsByArea(currentArea);
+		Set<Lamp> lampsInOppositeArea = getLampsByArea(oppositeArea);
 
-		// Only check up to the highest key in the current area.
-		// Lower ones that are missing are correctly shown in the varbit, higher ones are not.
-		int maxKey = Collections.max(currentMap.keySet());
-		for (int i = 0; i <= maxKey; i++)
+		int maxBitPosition = MAX_BIT_BY_AREA.getOrDefault(currentArea, 0);
+
+		for (int i = 0; i <= maxBitPosition; i++)
 		{
-			// For this set bit, grab the lamp loc based on the current area
-			LampPoint l = currentMap.get(i);
-
-			// If there is no lamp indicated by the bit i in the first map square,
-			// the bit actually refers to a lamp in the other map square.
-			if (l == null)
+			if ((varbitValue & (1 << i)) != 0)
 			{
-				l = oppositeMap.get(i);
-			}
+				Set<Lamp> lampsForBit = LAMPS_BY_BIT_POSITION.getOrDefault(i, Collections.emptySet());
 
-			if (l != null)
-			{
-				boolean isBroken = false;
-				if (i < bits.length())
+				Lamp lampToAdd = null;
+				for (Lamp lamp : lampsForBit)
 				{
-					isBroken = bits.get(i);
+					if (lampsInCurrentArea.contains(lamp))
+					{
+						lampToAdd = lamp;
+						break;
+					}
+
+					if (lampsInOppositeArea.contains(lamp))
+					{
+						lampToAdd = lamp;
+					}
 				}
 
-				l.setBroken(isBroken);
-				lampPoints.add(l);
+				if (lampToAdd != null)
+				{
+					brokenLamps.add(lampToAdd);
+				}
 			}
 		}
-		return lampPoints;
+
+		return brokenLamps;
 	}
 
-	// Return a sorted ArrayList of n world points such that the WorldPoint closest to the player
-	// is at index 0 and the farthest point is at index n-1.
-	public ArrayList<LampPoint> sortBrokenLamps(HashSet<LampPoint> lampPoints, @NonNull WorldPoint currentPoint)
+	public static Set<Lamp> getValidOppositeLamps(Area currentArea)
+	{
+		Area oppositeArea = currentArea.getOpposite();
+		if (oppositeArea == null)
+		{
+			return Collections.emptySet();
+		}
+
+		Set<Lamp> lampsInOppositeArea = getLampsByArea(oppositeArea);
+
+		int maxBitPosition = MAX_BIT_BY_AREA.getOrDefault(currentArea, 0);
+		Set<Integer> currentAreaBitPositions = BIT_POSITIONS_BY_AREA.getOrDefault(currentArea, Collections.emptySet());
+
+		return lampsInOppositeArea.stream().filter(lamp -> lamp.getBitPosition() <= maxBitPosition
+				&& !currentAreaBitPositions.contains(lamp.getBitPosition())).collect(Collectors.toSet());
+	}
+
+	public static Map<Lamp, LampStatus> updateLampStatuses(Map<Lamp, LampStatus> lampStatuses, Set<Lamp> brokenLamps,
+			boolean isLampsFixed, Area currentArea)
 	{
 
-		ArrayList<LampPoint> sortedPoints = new ArrayList<>(lampPoints);
+		Map<Lamp, LampStatus> updatedStatuses = new EnumMap<>(lampStatuses);
 
-		Comparator<LampPoint> comparator = new Comparator<LampPoint>()
+		Set<Lamp> lampsInCurrentArea = getLampsByArea(currentArea);
+		for (Lamp lamp : lampsInCurrentArea)
 		{
-			public int compare(LampPoint a, LampPoint b)
+			updatedStatuses.put(lamp, brokenLamps.contains(lamp) ? LampStatus.BROKEN : LampStatus.WORKING);
+		}
+
+		Area oppositeArea = currentArea.getOpposite();
+		if (oppositeArea != null)
+		{
+			Set<Lamp> validOppositeLamps = getValidOppositeLamps(currentArea);
+			for (Lamp lamp : validOppositeLamps)
 			{
-				return currentPoint.distanceTo(a.getWorldPoint()) - currentPoint.distanceTo(b.getWorldPoint());
+				updatedStatuses.put(lamp, brokenLamps.contains(lamp) ? LampStatus.BROKEN : LampStatus.WORKING);
 			}
-		};
 
-		sortedPoints.sort(comparator);
+			if (isLampsFixed)
+			{
+				for (Lamp lamp : Lamp.values())
+				{
+					Area lampArea = lamp.getArea();
+					if (lampArea != currentArea && lampArea != oppositeArea)
+					{
+						LampStatus status = updatedStatuses.get(lamp);
+						if (status == LampStatus.WORKING)
+						{
+							updatedStatuses.put(lamp, LampStatus.UNKNOWN);
+						}
+					}
+				}
+			}
+		}
+		autoFixAllLampsIfNeeded(updatedStatuses);
 
-		return sortedPoints;
+		return updatedStatuses;
+	}
+
+	public static int countBrokenLamps(Map<Lamp, LampStatus> lampStatuses)
+	{
+		int totalBroken = 0;
+		for (LampStatus status : lampStatuses.values())
+		{
+			if (status == LampStatus.BROKEN)
+			{
+				totalBroken++;
+			}
+		}
+		return totalBroken;
+	}
+
+	public static void autoFixAllLampsIfNeeded(Map<Lamp, LampStatus> lampStatuses)
+	{
+		int totalBroken = countBrokenLamps(lampStatuses);
+
+		if (totalBroken == 10)
+		{
+			for (Lamp lamp : Lamp.values())
+			{
+				if (lampStatuses.get(lamp) != LampStatus.BROKEN)
+				{
+					lampStatuses.put(lamp, LampStatus.WORKING);
+				}
+			}
+		}
+	}
+
+	public static boolean areaHasUnknownLamps(Area area, Map<Lamp, LampStatus> lampStatuses)
+	{
+		if (area == null)
+		{
+			return false;
+		}
+
+		Set<Lamp> lampsInArea = getLampsByArea(area);
+		for (Lamp lamp : lampsInArea)
+		{
+			LampStatus status = lampStatuses.getOrDefault(lamp, LampStatus.UNKNOWN);
+			if (status == LampStatus.UNKNOWN)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static int countUnknownLampsInArea(Map<Lamp, LampStatus> lampStatuses, Area area)
+	{
+		if (area == null)
+		{
+			return 0;
+		}
+
+		int unknownCount = 0;
+		Set<Lamp> lampsInArea = getLampsByArea(area);
+
+		for (Lamp lamp : lampsInArea)
+		{
+			if (lampStatuses.getOrDefault(lamp, LampStatus.UNKNOWN) == LampStatus.UNKNOWN)
+			{
+				unknownCount++;
+			}
+		}
+		return unknownCount;
+	}
+
+	public static boolean isInBankArea(WorldPoint playerLocation)
+	{
+		return playerLocation.distanceTo(DKLightsConstants.BANK_LOCATION) <= 5;
+	}
+
+	public static boolean isLocationBetweenTransportPoints(WorldPoint objectLocation, Transport transport)
+	{
+		WorldPoint origin = transport.getOrigin();
+		WorldPoint destination = transport.getDestination();
+
+		if (objectLocation.getPlane() != origin.getPlane() && objectLocation.getPlane() != destination.getPlane())
+		{
+			return false;
+		}
+
+		int objX = objectLocation.getX();
+		int objY = objectLocation.getY();
+
+		int minX = Math.min(origin.getX(), destination.getX());
+		int maxX = Math.max(origin.getX(), destination.getX());
+		int minY = Math.min(origin.getY(), destination.getY());
+		int maxY = Math.max(origin.getY(), destination.getY());
+
+		boolean xBetween = objX >= minX && objX <= maxX;
+		boolean yBetween = objY >= minY && objY <= maxY;
+
+		if (xBetween && yBetween)
+		{
+			return true;
+		}
+
+		boolean nearOrigin = Math.abs(objX - origin.getX()) <= 1 && Math.abs(objY - origin.getY()) <= 1;
+		boolean nearDestination = Math.abs(objX - destination.getX()) <= 1 && Math.abs(objY - destination.getY()) <= 1;
+
+		return nearOrigin && nearDestination;
 	}
 }

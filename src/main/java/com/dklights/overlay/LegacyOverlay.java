@@ -22,34 +22,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.dklights;
+package com.dklights.overlay;
+
+import com.dklights.DKLightsConfig;
+import com.dklights.DKLightsPlugin;
+import com.dklights.enums.Area;
+import com.dklights.enums.Lamp;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Set;
+
 import javax.inject.Inject;
-import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.components.LineComponent;
 
-public class DKLightsOverlayPanel extends OverlayPanel
+public class LegacyOverlay extends OverlayPanel
 {
 
 	private final DKLightsPlugin plugin;
+    private final DKLightsConfig config;
 
 	@Inject
-	private DKLightsOverlayPanel(DKLightsPlugin plugin)
+	private LegacyOverlay(DKLightsPlugin plugin, DKLightsConfig config)
 	{
 		super(plugin);
+        this.config = config;
 		this.plugin = plugin;
 
 		setPosition(OverlayPosition.TOP_LEFT);
-		setPriority(OverlayPriority.HIGH);
 	}
 
 	private void addTextToOverlayPanel(String text)
@@ -60,28 +63,31 @@ public class DKLightsOverlayPanel extends OverlayPanel
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
+        if (!config.showLegacyOverlay())
+        {
+            return null;
+        }
 
-		HashSet<LampPoint> areaLampPoints = plugin.getBrokenLamps();
+		Set<Lamp> areaLampPoints = plugin.getStateManager().getBrokenLamps();
+		Area currentArea = plugin.getStateManager().getCurrentArea();
 
-		DKLightsEnum currentArea = plugin.getCurrentArea();
 		panelComponent.getChildren().clear();
-		if (currentArea == DKLightsEnum.BAD_AREA)
+		if (currentArea == null)
 		{
 			return null;
 		}
 
 		boolean addedText = false;
-		String[] areaNames = {"North Ground Floor", "South Ground Floor", "North Second Floor", "South Second Floor", "North Third Floor", "South Third Floor"};
 		if (areaLampPoints != null && areaLampPoints.size() != 10)
 		{
 			addTextToOverlayPanel("Unknown lights: " + (10 - areaLampPoints.size()));
 		}
-		for (int i = 0; i < DKLightsEnum.BAD_AREA.value; i++)
+		for (Area area : Area.values())
 		{
 			LinkedHashMap<String, Integer> descriptionCount = new LinkedHashMap<>();
-			for (LampPoint l : areaLampPoints)
+			for (Lamp l : areaLampPoints)
 			{
-				if (l.getArea().value != i)
+				if (l.getArea() != area)
 				{
 					continue;
 				}
@@ -98,7 +104,7 @@ public class DKLightsOverlayPanel extends OverlayPanel
 
 			if (descriptionCount.size() != 0)
 			{
-				addTextToOverlayPanel(areaNames[i]);
+				addTextToOverlayPanel(area.getName());
 			}
 			for (String s : descriptionCount.keySet())
 			{
