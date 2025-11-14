@@ -80,7 +80,7 @@ public class LegacyOverlay extends OverlayPanel
 		boolean addedText = false;
 		if (areaLampPoints != null && areaLampPoints.size() != 10)
 		{
-			addTextToOverlayPanel("Unknown lights: " + (10 - areaLampPoints.size()));
+			addTextToOverlayPanel("Unknown lamps: " + (10 - areaLampPoints.size()));
 		}
 		for (Area area : Area.values())
 		{

@@ -200,7 +200,10 @@ public class DKLightsStateManager
 		{
 			spawnedDoors.put(wallObject.getWorldLocation(), wallObject);
 		}
-		updateWallCache(wallObject.getWorldLocation(), true);
+        else
+        {
+		    updateWallCache(wallObject.getWorldLocation(), true);
+        }
 	}
 
 	public void onWallObjectDespawned(WallObject wallObject)
@@ -209,7 +212,10 @@ public class DKLightsStateManager
 		{
 			spawnedDoors.remove(wallObject.getWorldLocation());
 		}
-		updateWallCache(wallObject.getWorldLocation(), false);
+        else
+        {
+		    updateWallCache(wallObject.getWorldLocation(), false);
+        }
 	}
 
 	public void onGameStateChanged(GameState gameState)

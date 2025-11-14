@@ -53,7 +53,7 @@ public class StatsOverlay extends OverlayPanel
 			return null;
 		}
 
-		panelComponent.getChildren().add(TitleComponent.builder().text("Dorgesh-Kaan Lamps").color(Color.CYAN).build());
+		panelComponent.getChildren().add(TitleComponent.builder().text("Dorgesh-Kaan Lights").color(Color.CYAN).build());
 
 		panelComponent.getChildren()
 				.add(LineComponent.builder().left("Target:")

@@ -56,7 +56,9 @@ import net.runelite.client.ui.overlay.OverlayManager;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Dorgesh-Kaan Lights"
+	name = "Dorgesh-Kaan Lights",
+    description="Makes it easier to find broken lamps in Dorgesh-Kaan.",
+    tags={"dorgesh","lamps","lights","kaan","dorgesh-kaan"}
 )
 public class DKLightsPlugin extends Plugin
 {
@@ -134,7 +136,7 @@ public class DKLightsPlugin extends Plugin
 	@Override
 	protected void shutDown() throws Exception
 	{
-		log.info("Dorgesh-Kaan Lamps stopped!");
+		log.info("Dorgesh-Kaan Lights stopped!");
 		overlayManager.remove(overlay);
 		overlayManager.remove(teleportOverlay);
 		overlayManager.remove(statsOverlay);
@@ -211,7 +213,6 @@ public class DKLightsPlugin extends Plugin
 			{
 				navigationManager.clearPathAndTarget();
 			}
-			client.clearHintArrow();
 			return;
 		}
 
