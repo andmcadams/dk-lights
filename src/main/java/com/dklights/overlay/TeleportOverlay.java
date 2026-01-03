@@ -37,10 +37,9 @@ public class TeleportOverlay extends WidgetItemOverlay
 			return;
 		}
 
-		List<WorldPoint> path = plugin.getNavigationManager().getShortestPath();
+        int closestDist = plugin.getNavigationManager().getClosestDistance();
 
-		if (path != null
-				&& (path.size() > config.maxPathDistance() || plugin.getStateManager().getBrokenLamps().isEmpty())
+		if ((closestDist > config.maxPathDistance() || closestDist == 0)
 				&& plugin.getNavigationManager().getCurrentTargetType() == TargetType.LAMP)
 		{
 			Rectangle bounds = itemWidget.getCanvasBounds();

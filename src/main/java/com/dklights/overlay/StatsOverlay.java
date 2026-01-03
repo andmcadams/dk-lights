@@ -6,6 +6,8 @@ import com.dklights.DKLightsPlugin;
 import com.dklights.enums.Area;
 import com.dklights.enums.TargetType;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -17,6 +19,7 @@ import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.components.LineComponent.LineComponentBuilder;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 
+@Slf4j
 public class StatsOverlay extends OverlayPanel
 {
 	private final DKLightsPlugin plugin;
@@ -63,10 +66,11 @@ public class StatsOverlay extends OverlayPanel
 		if (config.showClosestDistance() && config.showPathToLocation() && plugin.getNavigationManager().getCurrentTargetType() != TargetType.NONE)
 		{
 			int closestDist = plugin.getNavigationManager().getClosestDistance();
-			String distText = (closestDist == Integer.MAX_VALUE) ? "-" : String.valueOf(closestDist);
-			LineComponentBuilder line = LineComponent.builder().left("Distance:").right(distText + " tiles");
 
-			if (closestDist != Integer.MAX_VALUE && closestDist > config.maxPathDistance()
+			String distText = (closestDist == 0) ? "---" : (String.valueOf(closestDist) + " tiles");
+			LineComponentBuilder line = LineComponent.builder().left("Distance:").right(distText);
+
+			if ((closestDist > config.maxPathDistance() || closestDist == 0)
 					&& plugin.getNavigationManager().getCurrentTargetType() == TargetType.LAMP)
 			{
 				boolean blinkOn = (System.currentTimeMillis() / 600) % 2 == 0;
