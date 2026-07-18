@@ -87,11 +87,6 @@ public class LegacyOverlay extends OverlayPanel
 			LinkedHashMap<String, Integer> descriptionCount = new LinkedHashMap<>();
 			for (Lamp l : areaLampPoints)
 			{
-				if (l.getArea() != area)
-				{
-					continue;
-				}
-
 				if (!descriptionCount.containsKey(l.getDescription()))
 				{
 					descriptionCount.put(l.getDescription(), 1);
