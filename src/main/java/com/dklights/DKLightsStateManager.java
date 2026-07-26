@@ -220,7 +220,7 @@ public class DKLightsStateManager
 
 	public void onGameStateChanged(GameState gameState)
 	{
-		if (gameState == GameState.LOADING || gameState == GameState.LOGIN_SCREEN || gameState == GameState.HOPPING)
+		if (gameState == GameState.LOGIN_SCREEN || gameState == GameState.HOPPING)
 		{
 
 			spawnedLamps.clear();
@@ -233,10 +233,6 @@ public class DKLightsStateManager
 			wireRespawnTick = -1;
 			currentArea = null;
 
-			if (gameState != GameState.LOADING)
-			{
-				resetLampStatuses();
-			}
 		}
 	}
 

@@ -25,7 +25,6 @@ import net.runelite.api.coords.WorldPoint;
 public class DKLightsNavigationManager
 {
 
-	private final Client client;
 	private final DKLightsConfig config;
 	private final Pathfinder pathfinder;
 	private final ExecutorService pathfindingExecutor;
@@ -47,7 +46,6 @@ public class DKLightsNavigationManager
 	public DKLightsNavigationManager(Client client, DKLightsConfig config, Pathfinder pathfinder,
 			ExecutorService pathfindingExecutor)
 	{
-		this.client = client;
 		this.config = config;
 		this.pathfinder = pathfinder;
 		this.pathfindingExecutor = pathfindingExecutor;

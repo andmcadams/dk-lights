@@ -28,12 +28,12 @@ import com.dklights.DKLightsConfig;
 import com.dklights.DKLightsPlugin;
 import com.dklights.enums.Area;
 import com.dklights.enums.Lamp;
+import com.dklights.enums.LampStatus;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.util.LinkedHashMap;
-import java.util.Set;
-
+import java.util.Map;
 import javax.inject.Inject;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -68,50 +68,55 @@ public class LegacyOverlay extends OverlayPanel
             return null;
         }
 
-		Set<Lamp> areaLampPoints = plugin.getStateManager().getBrokenLamps();
 		Area currentArea = plugin.getStateManager().getCurrentArea();
-
-		panelComponent.getChildren().clear();
-		if (currentArea == null)
+        if (currentArea == null)
 		{
 			return null;
 		}
+        
+		panelComponent.getChildren().clear();
+        
+		Map<Lamp, LampStatus> allStatuses = plugin.getStateManager().getLampStatuses();
+		int unknownCount = 0;
 
 		boolean addedText = false;
-		if (areaLampPoints != null && areaLampPoints.size() != 10)
-		{
-			addTextToOverlayPanel("Unknown lamps: " + (10 - areaLampPoints.size()));
-		}
+
 		for (Area area : Area.values())
 		{
 			LinkedHashMap<String, Integer> descriptionCount = new LinkedHashMap<>();
-			for (Lamp l : areaLampPoints)
-			{
-				if (!descriptionCount.containsKey(l.getDescription()))
-				{
-					descriptionCount.put(l.getDescription(), 1);
-				}
-				else
-				{
-					descriptionCount.put(l.getDescription(), descriptionCount.get(l.getDescription()) + 1);
-				}
-			}
+			for (Map.Entry<Lamp, LampStatus> entry : allStatuses.entrySet())
+            {
+                Lamp l = entry.getKey();
+                LampStatus status = entry.getValue();
 
-			if (descriptionCount.size() != 0)
+                if (status == LampStatus.UNKNOWN)
+                {
+                    unknownCount++;
+                    continue;
+                }
+
+                if (l.getArea() != area || status != LampStatus.BROKEN)
+				{
+					continue;
+				}
+            }
+
+			if (!descriptionCount.isEmpty())
 			{
 				addTextToOverlayPanel(area.getName());
-			}
-			for (String s : descriptionCount.keySet())
-			{
-				String num = " (x" + descriptionCount.get(s) + ")";
-				if (descriptionCount.get(s) == 1)
+				for (Map.Entry<String, Integer> descEntry : descriptionCount.entrySet())
 				{
-					num = "";
+					String num = descEntry.getValue() == 1 ? "" : " (x" + descEntry.getValue() + ")";
+					addTextToOverlayPanel("* " + descEntry.getKey() + num);
+					addedText = true;
 				}
-				addTextToOverlayPanel("* " + s + num);
-				addedText = true;
 			}
 		}
+        
+        if (unknownCount > 0)
+        {
+            panelComponent.getChildren().add(0, LineComponent.builder().left("Unknown lamps: " + unknownCount).build());
+        }
 
 		if (!addedText)
 		{

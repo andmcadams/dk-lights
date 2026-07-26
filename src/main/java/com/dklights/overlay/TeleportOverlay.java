@@ -3,7 +3,6 @@ package com.dklights.overlay;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.util.List;
 import javax.inject.Inject;
 
 import com.dklights.DKLightsConfig;
@@ -11,7 +10,6 @@ import com.dklights.DKLightsConstants;
 import com.dklights.DKLightsPlugin;
 import com.dklights.enums.TargetType;
 
-import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.widgets.WidgetItem;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.WidgetItemOverlay;
