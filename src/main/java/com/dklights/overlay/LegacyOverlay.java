@@ -99,6 +99,8 @@ public class LegacyOverlay extends OverlayPanel
 				{
 					continue;
 				}
+
+                descriptionCount.put(l.getDescription(), descriptionCount.getOrDefault(l.getDescription(), 0) + 1);
             }
 
 			if (!descriptionCount.isEmpty())
