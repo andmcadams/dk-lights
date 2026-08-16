@@ -234,6 +234,16 @@ public class DKLightsStateManager
 			currentArea = null;
 
 		}
+		else if (gameState == GameState.LOADING)
+		{
+			spawnedLamps.clear();
+			spawnedDoors.clear();
+			spawnedStairs.clear();
+			stairTargetAreaMap.clear();
+			informativeStairs.clear();
+			lampWallCache.clear();
+			wireMachine = null;
+		}
 	}
 
 	public void onChatMessage(ChatMessage chatMessage)
